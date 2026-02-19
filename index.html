@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      ระบบบริหารจัดการโครงสร้างพื้นฐาน &amp; องค์การบริหารส่วนจังหวัดเชียงราย
+    </title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              prompt: ["Prompt", "sans-serif"],
+              sarabun: ["Sarabun", "sans-serif"],
+            },
+            colors: {
+              brand: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e3a5f",
+                900: "#0f1d35",
+                950: "#0a1628",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body class="bg-slate-900 text-gray-100 h-screen overflow-hidden">
+    <div class="flex h-screen relative" id="appRoot">
+      <!-- ========== SIDEBAR ========== -->
+      <aside
+        id="sidebar"
+        class="w-full lg:w-[400px] h-full flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col z-30 fixed lg:relative bottom-0 left-0 right-0 sidebar-mobile-enter lg:!transform-none"
+      >
+        <!-- Sidebar Header -->
+        <div class="px-5 pt-5 pb-3 border-b border-slate-700">
+          <!-- Logo Row -->
+          <div class="flex items-center gap-3 mb-4">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25"
+            >
+              <i data-lucide="radar" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+              <h1
+                class="font-heading text-l font-bold tracking-tight text-white leading-none"
+              >
+                ระบบบริหารจัดการโครงสร้างพื้นฐาน
+              </h1>
+              <p class="text-[11px] text-blue-400 font-medium tracking-wide">
+                องค์การบริหารส่วนจังหวัดเชียงราย
+              </p>
+            </div>
+            <button
+              id="closeSidebarBtn"
+              class="lg:hidden ml-auto p-2 rounded-lg hover:bg-slate-700 transition-colors"
+            >
+              <i data-lucide="x" class="w-5 h-5 text-gray-400"></i>
+            </button>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-slate-700 rounded-xl p-2.5 text-center">
+              <p class="stat-value text-lg font-bold text-white" id="statTotal">
+                —
+              </p>
+              <p class="text-[10px] text-gray-400 font-medium">
+                โครงการทั้งหมด
+              </p>
+            </div>
+            <div class="bg-slate-700 rounded-xl p-2.5 text-center">
+              <p
+                class="stat-value text-lg font-bold text-emerald-400"
+                id="statBudget"
+              >
+                —
+              </p>
+              <p class="text-[10px] text-gray-400 font-medium">งบประมาณรวม</p>
+            </div>
+            <div class="bg-slate-700 rounded-xl p-2.5 text-center">
+              <p
+                class="stat-value text-lg font-bold text-amber-400"
+                id="statDistricts"
+              >
+                —
+              </p>
+              <p class="text-[10px] text-gray-400 font-medium">อำเภอ</p>
+            </div>
+          </div>
+
+          <!-- Fiscal Year (1/4) + Search (3/4) Row -->
+          <div class="flex gap-2 mb-3">
+            <!-- Fiscal Year Filter — 1/4 width -->
+            <div class="relative w-1/4 min-w-[90px]">
+              <i
+                data-lucide="calendar"
+                class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none"
+              ></i>
+              <select
+                id="yearFilter"
+                class="w-full pl-8 pr-6 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate transition-all"
+              >
+                <option value="">ทุกปี</option>
+              </select>
+              <i
+                data-lucide="chevron-down"
+                class="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none"
+              ></i>
+            </div>
+            <!-- Search — 3/4 width -->
+            <div class="relative flex-1">
+              <i
+                data-lucide="search"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"
+              ></i>
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="ค้นหาโครงการ หมู่บ้าน หรือหมู่ที่..."
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- District + Subdistrict Filters Row -->
+          <div class="flex gap-2 mb-3">
+            <div class="relative flex-1">
+              <i
+                data-lucide="map-pin"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+              <select
+                id="districtFilter"
+                class="w-full pl-9 pr-8 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-all"
+              >
+                <option value="">ทุกอำเภอ</option>
+              </select>
+              <i
+                data-lucide="chevron-down"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+            </div>
+            <div class="relative flex-1">
+              <i
+                data-lucide="map"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+              <select
+                id="subdistrictFilter"
+                class="w-full pl-9 pr-8 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-all"
+              >
+                <option value="">ทุกตำบล</option>
+              </select>
+              <i
+                data-lucide="chevron-down"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Type Filter Row -->
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <i
+                data-lucide="layers"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+              <select
+                id="typeFilter"
+                class="w-full pl-9 pr-8 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer transition-all"
+              >
+                <option value="">ทุกประเภท</option>
+              </select>
+              <i
+                data-lucide="chevron-down"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+              ></i>
+            </div>
+          </div>
+
+          <!-- Status Filter Checkboxes -->
+          <div class="px-5 py-3">
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-xs font-medium text-gray-400"
+                >สถานะโครงการ</label
+              >
+              <span
+                id="totalProjectCount"
+                class="text-xs text-gray-500 cursor-pointer hover:text-emerald-400 transition-colors"
+                title="คลิกเพื่อแสดงโครงการทั้งหมด"
+                >ทั้งหมด 0 โครงการ</span
+              >
+            </div>
+            <div class="flex flex-row flex-wrap gap-4">
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  id="statusInProgress"
+                  class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-2 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer"
+                  checked
+                />
+                <span
+                  class="text-sm text-gray-300 group-hover:text-white transition-colors"
+                  >อยู่ระหว่างดำเนินการ</span
+                >
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  id="statusCompleted"
+                  class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-0 cursor-pointer"
+                  checked
+                />
+                <span
+                  class="text-sm text-gray-300 group-hover:text-white transition-colors"
+                  >ดำเนินการเสร็จสิ้น</span
+                >
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results count -->
+        <div
+          class="px-5 py-2 flex items-center justify-between text-xs text-gray-400 border-b border-slate-700"
+        >
+          <span id="resultCount">กำลังโหลด...</span>
+          <button
+            id="clearFilters"
+            class="text-blue-400 hover:text-blue-300 transition-colors hidden"
+          >
+            <span class="flex items-center gap-1"
+              ><i data-lucide="filter-x" class="w-3 h-3"></i> ล้างตัวกรอง</span
+            >
+          </button>
+        </div>
+
+        <!-- Project List -->
+        <div
+          id="projectList"
+          class="flex-1 overflow-y-auto custom-scroll p-3 space-y-2"
+        >
+          <div
+            id="loadingState"
+            class="flex flex-col items-center justify-center py-16"
+          >
+            <div class="spinner mb-4"></div>
+            <p class="text-sm text-gray-400">กำลังโหลดข้อมูลโครงการ...</p>
+          </div>
+          <div
+            id="emptyState"
+            class="hidden flex-col items-center justify-center py-16 text-center"
+          >
+            <div
+              class="w-16 h-16 rounded-2xl bg-slate-700 flex items-center justify-center mb-4"
+            >
+              <i data-lucide="search-x" class="w-8 h-8 text-gray-500"></i>
+            </div>
+            <p class="text-sm text-gray-400 mb-1">ไม่พบโครงการ</p>
+            <p class="text-xs text-gray-500">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+          </div>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div
+          class="px-5 py-3 border-t border-slate-700 text-[10px] text-gray-500 flex items-center justify-between"
+        >
+          <span>&copy; 2026 CRPAO</span>
+          <span class="flex items-center gap-1"
+            ><i data-lucide="database" class="w-3 h-3"></i> Google Sheets
+            API</span
+          >
+        </div>
+      </aside>
+
+      <!-- ========== MAP AREA ========== -->
+      <main class="flex-1 relative">
+        <div id="map" class="w-full h-full"></div>
+
+        <!-- Mobile Toggle -->
+        <button
+          id="openSidebarBtn"
+          class="lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-slate-800 border border-slate-700 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
+        >
+          <i data-lucide="layout-list" class="w-4 h-4"></i>
+          <span class="text-sm font-medium font-heading">รายการโครงการ</span>
+          <span
+            id="mobileBadge"
+            class="bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1"
+            >0</span
+          >
+        </button>
+
+        <!-- Map Layer Control -->
+        <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+          <div
+            id="mapControls"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+          >
+            <button
+              id="layerStreet"
+              class="map-layer-btn active flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all bg-blue-600 text-white"
+              title="Street View"
+            >
+              <i data-lucide="map" class="w-4 h-4"></i
+              ><span class="hidden sm:inline">แผนที่</span>
+            </button>
+            <button
+              id="layerSatellite"
+              class="map-layer-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white hover:bg-slate-700"
+              title="Satellite View"
+            >
+              <i data-lucide="satellite" class="w-4 h-4"></i
+              ><span class="hidden sm:inline">ดาวเทียม</span>
+            </button>
+          </div>
+          <div
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+          >
+            <button
+              id="zoomIn"
+              class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700 transition-all"
+              title="Zoom In"
+            >
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+            <button
+              id="zoomOut"
+              class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700 transition-all"
+              title="Zoom Out"
+            >
+              <i data-lucide="minus" class="w-4 h-4"></i>
+            </button>
+            <button
+              id="zoomFit"
+              class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700 transition-all"
+              title="Fit All"
+            >
+              <i data-lucide="maximize-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+          >
+            <button
+              id="toggleFullscreen"
+              class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700 transition-all"
+              title="ซ่อน/แสดงเมนู"
+            >
+              <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <!-- Boundary Controls -->
+          <div
+            id="boundaryControls"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+          >
+            <button
+              id="toggleBoundary"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all bg-emerald-600 text-white"
+              title="เปิด/ปิดเส้นแบ่งเขต"
+            >
+              <i data-lucide="map-pin" class="w-4 h-4"></i
+              ><span class="hidden sm:inline">เขต</span>
+            </button>
+            <div class="h-px bg-slate-700 my-0.5"></div>
+            <button
+              id="boundaryDistrict"
+              class="boundary-level-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white hover:bg-slate-700"
+              data-level="district"
+              title="แสดงเขตอำเภอ"
+            >
+              <span class="text-xs">อำเภอ</span>
+            </button>
+            <button
+              id="boundarySubdistrict"
+              class="boundary-level-btn active flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all bg-blue-600 text-white"
+              data-level="subdistrict"
+              title="แสดงเขตตำบล"
+            >
+              <span class="text-xs">ตำบล</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Map Legend -->
+        <div
+          id="mapLegend"
+          class="absolute bottom-5 right-4 z-[1000] bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3"
+        >
+          <p
+            class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2"
+          >
+            ประเภทโครงการ
+          </p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-amber-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">ถนน คสล.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-yellow-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">ถนนหินคลุก</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-blue-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">ขุดลอก</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-cyan-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">วางท่อระบายน้ำ</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-teal-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">รางระบายน้ำ</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-indigo-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">ท่อลอดเหลี่ยม</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-emerald-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">สวนสุขภาพ</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-red-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">เขื่อน</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span
+                class="w-3 h-3 rounded bg-purple-500 border-2 border-slate-600"
+              ></span
+              ><span class="text-xs text-gray-300">ก่อสร้างรั้ว</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+  </body>
+</html>
