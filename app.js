@@ -396,7 +396,9 @@
       marker: null,
       circle: null,
       watchId: null,
-      active: false
+      active: false,
+      radiusCircle: null,
+      latlng: null
     }
   };
 
@@ -933,6 +935,14 @@
       });
     }
 
+    // Filter by 10km radius from current GPS position
+    if (state.myLocation.active && state.myLocation.latlng) {
+      filtered = filtered.filter((p) => {
+        if (!p.coords) return false;
+        return state.map.distance(state.myLocation.latlng, [p.coords.lat, p.coords.lng]) <= 10000;
+      });
+    }
+
     state.filteredProjects = filtered;
     renderCards(filtered);
     renderMarkers(filtered);
@@ -941,13 +951,15 @@
     updateStats(filtered);
 
     // Zoom map based on filter context
-    const points = filtered.filter((p) => p.coords).map((p) => [p.coords.lat, p.coords.lng]);
-    if (districtVal && points.length > 0) {
-      // District selected → zoom to that district's markers
-      state.map.flyToBounds(L.latLngBounds(points).pad(0.2), { duration: 0.8 });
-    } else if (!districtVal && !searchTerm) {
-      // "ทุกอำเภอ" → zoom to all Chiang Rai
-      state.map.flyTo(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM, { duration: 0.8 });
+    if (!state.myLocation.active) {
+      const points = filtered.filter((p) => p.coords).map((p) => [p.coords.lat, p.coords.lng]);
+      if (districtVal && points.length > 0) {
+        // District selected → zoom to that district's markers
+        state.map.flyToBounds(L.latLngBounds(points).pad(0.2), { duration: 0.8 });
+      } else if (!districtVal && !searchTerm) {
+        // "ทุกอำเภอ" → zoom to all Chiang Rai
+        state.map.flyTo(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM, { duration: 0.8 });
+      }
     }
 
     const clearBtn = document.getElementById("clearFilters");
@@ -1309,6 +1321,14 @@
       state.map.removeLayer(state.myLocation.circle);
       state.myLocation.circle = null;
     }
+    if (state.myLocation.radiusCircle) {
+      state.map.removeLayer(state.myLocation.radiusCircle);
+      state.myLocation.radiusCircle = null;
+    }
+    state.myLocation.latlng = null;
+
+    // Re-apply filters to reset and show all projects
+    applyFilters();
   }
 
   function updateMyLocationMarker(position) {
@@ -1317,17 +1337,26 @@
     const accuracy = position.coords.accuracy;
     const latlng = [lat, lng];
 
-    // Custom pulsing icon for my location
+    // Store current position in state
+    state.myLocation.latlng = [lat, lng];
+
+    // Custom person checkpoint SVG icon
     const myIcon = L.divIcon({
       className: 'my-location-marker',
-      html: '<div class="my-location-dot"><div class="my-location-pulse"></div></div>',
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
+      html: `<div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#3b82f6" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="5" r="3"/>
+          <path d="M12 8c-3 0-5 2.5-5 5 0 1.5.5 2.5 1.5 3.5L12 21l3.5-4.5c1-1 1.5-2 1.5-3.5 0-2.5-2-5-5-5z"/>
+        </svg>
+      </div>`,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
     });
 
     if (state.myLocation.marker) {
       state.myLocation.marker.setLatLng(latlng);
       state.myLocation.circle.setLatLng(latlng).setRadius(accuracy);
+      state.myLocation.radiusCircle.setLatLng(latlng);
     } else {
       state.myLocation.circle = L.circle(latlng, {
         radius: accuracy,
@@ -1335,6 +1364,16 @@
         fillColor: '#3b82f6',
         fillOpacity: 0.1,
         weight: 1,
+      }).addTo(state.map);
+
+      state.myLocation.radiusCircle = L.circle(latlng, {
+        radius: 10000,
+        color: '#22c55e',
+        fillColor: '#22c55e',
+        fillOpacity: 0.05,
+        weight: 2,
+        dashArray: '10, 8',
+        opacity: 0.6,
       }).addTo(state.map);
 
       state.myLocation.marker = L.marker(latlng, { icon: myIcon, zIndexOffset: 9999 })
@@ -1348,6 +1387,9 @@
       // Fly to my location on first fix
       state.map.flyTo(latlng, 15, { duration: 1 });
     }
+
+    // Re-apply filters to show only projects within 10km radius
+    applyFilters();
   }
 
   // =============================================
