@@ -1284,18 +1284,7 @@
     btn.classList.remove("text-gray-400", "hover:text-white", "hover:bg-slate-700");
     btn.classList.add("bg-blue-600", "text-white");
 
-    // Get initial position
-    navigator.geolocation.getCurrentPosition(
-      (pos) => updateMyLocationMarker(pos),
-      (err) => {
-        console.warn("GPS error:", err.message);
-        alert("ไม่สามารถเข้าถึงตำแหน่ง GPS ได้ กรุณาอนุญาตสิทธิ์การเข้าถึงตำแหน่ง");
-        stopMyLocation();
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-
-    // Watch position for real-time updates
+    // Watch position for real-time updates (also fires immediately on first fix)
     state.myLocation.watchId = navigator.geolocation.watchPosition(
       (pos) => updateMyLocationMarker(pos),
       (err) => console.warn("GPS watch error:", err.message),
@@ -1336,6 +1325,15 @@
     const lng = position.coords.longitude;
     const accuracy = position.coords.accuracy;
     const latlng = [lat, lng];
+
+    // Ignore updates smaller than 20m to prevent jitter and popup flicker
+    if (state.myLocation.latlng) {
+      const oldLoc = L.latLng(state.myLocation.latlng[0], state.myLocation.latlng[1]);
+      const newLoc = L.latLng(lat, lng);
+      if (state.map.distance(oldLoc, newLoc) < 20) {
+        return;
+      }
+    }
 
     // Store current position in state
     state.myLocation.latlng = [lat, lng];
