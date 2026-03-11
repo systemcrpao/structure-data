@@ -2,6 +2,36 @@
    CR-Vision: Styles
    ============================================= */
 
+/* My Location GPS Marker */
+.my-location-marker {
+  background: transparent !important;
+  border: none !important;
+}
+.my-location-dot {
+  width: 16px;
+  height: 16px;
+  background: #3b82f6;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+  position: relative;
+}
+.my-location-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.25);
+  animation: locPulse 2s ease-out infinite;
+}
+@keyframes locPulse {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+}
+
 * {
   box-sizing: border-box;
 }

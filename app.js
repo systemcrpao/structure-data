@@ -382,7 +382,7 @@
     satelliteLayer: null,
     boundaryLayer: null,
     boundaryType: 'subdistrict',  // 'subdistrict' or 'district'
-    boundaryVisible: true,
+    boundaryVisible: false,
     boundariesData: {
       subdistrict: null,
       district: null,
@@ -391,6 +391,12 @@
       districts: [],           // List of unique districts from GeoJSON
       subdistrictsByDistrict: {},  // Map: { "อำเภอ": ["ตำบล1", "ตำบล2", ...] }
       loaded: false
+    },
+    myLocation: {
+      marker: null,
+      circle: null,
+      watchId: null,
+      active: false
     }
   };
 
@@ -1240,6 +1246,111 @@
   }
 
   // =============================================
+  // MY LOCATION (GPS)
+  // =============================================
+  function setupMyLocation() {
+    const btn = document.getElementById("toggleMyLocation");
+    if (!btn) return;
+
+    btn.addEventListener("click", () => {
+      if (state.myLocation.active) {
+        stopMyLocation();
+      } else {
+        startMyLocation();
+      }
+    });
+  }
+
+  function startMyLocation() {
+    const btn = document.getElementById("toggleMyLocation");
+    if (!navigator.geolocation) {
+      alert("เบราว์เซอร์ไม่รองรับ GPS");
+      return;
+    }
+
+    state.myLocation.active = true;
+    btn.classList.remove("text-gray-400", "hover:text-white", "hover:bg-slate-700");
+    btn.classList.add("bg-blue-600", "text-white");
+
+    // Get initial position
+    navigator.geolocation.getCurrentPosition(
+      (pos) => updateMyLocationMarker(pos),
+      (err) => {
+        console.warn("GPS error:", err.message);
+        alert("ไม่สามารถเข้าถึงตำแหน่ง GPS ได้ กรุณาอนุญาตสิทธิ์การเข้าถึงตำแหน่ง");
+        stopMyLocation();
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+
+    // Watch position for real-time updates
+    state.myLocation.watchId = navigator.geolocation.watchPosition(
+      (pos) => updateMyLocationMarker(pos),
+      (err) => console.warn("GPS watch error:", err.message),
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    );
+  }
+
+  function stopMyLocation() {
+    const btn = document.getElementById("toggleMyLocation");
+    state.myLocation.active = false;
+    btn.classList.remove("bg-blue-600", "text-white");
+    btn.classList.add("text-gray-400", "hover:text-white", "hover:bg-slate-700");
+
+    if (state.myLocation.watchId !== null) {
+      navigator.geolocation.clearWatch(state.myLocation.watchId);
+      state.myLocation.watchId = null;
+    }
+    if (state.myLocation.marker) {
+      state.map.removeLayer(state.myLocation.marker);
+      state.myLocation.marker = null;
+    }
+    if (state.myLocation.circle) {
+      state.map.removeLayer(state.myLocation.circle);
+      state.myLocation.circle = null;
+    }
+  }
+
+  function updateMyLocationMarker(position) {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+    const latlng = [lat, lng];
+
+    // Custom pulsing icon for my location
+    const myIcon = L.divIcon({
+      className: 'my-location-marker',
+      html: '<div class="my-location-dot"><div class="my-location-pulse"></div></div>',
+      iconSize: [20, 20],
+      iconAnchor: [10, 10],
+    });
+
+    if (state.myLocation.marker) {
+      state.myLocation.marker.setLatLng(latlng);
+      state.myLocation.circle.setLatLng(latlng).setRadius(accuracy);
+    } else {
+      state.myLocation.circle = L.circle(latlng, {
+        radius: accuracy,
+        color: '#3b82f6',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.1,
+        weight: 1,
+      }).addTo(state.map);
+
+      state.myLocation.marker = L.marker(latlng, { icon: myIcon, zIndexOffset: 9999 })
+        .bindPopup(`<div style="text-align:center;font-size:13px;">
+          <div style="font-weight:600;margin-bottom:4px;">📍 ตำแหน่งของคุณ</div>
+          <div style="font-size:11px;color:#6b7280;">Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}</div>
+          <div style="font-size:11px;color:#6b7280;">ความแม่นยำ: ±${Math.round(accuracy)} เมตร</div>
+        </div>`)
+        .addTo(state.map);
+
+      // Fly to my location on first fix
+      state.map.flyTo(latlng, 15, { duration: 1 });
+    }
+  }
+
+  // =============================================
   // BOUNDARY CONTROLS
   // =============================================
   function setupBoundaryControls() {
@@ -1424,6 +1535,7 @@
     setupMobileToggle();
     setupFullscreenToggle();
     setupBoundaryControls();  // Setup boundary controls
+    setupMyLocation();  // Setup GPS location
     setupEventListeners();
 
     let projects;
