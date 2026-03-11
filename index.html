@@ -61,12 +61,12 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
 
-  <body class="bg-slate-900 text-gray-100 h-screen overflow-hidden">
-    <div class="flex h-screen relative" id="appRoot">
+  <body class="bg-slate-900 text-gray-100 h-[100dvh] overflow-hidden">
+    <div class="flex h-[100dvh] relative" id="appRoot">
       <!-- ========== SIDEBAR ========== -->
       <aside
         id="sidebar"
-        class="w-full lg:w-[400px] h-full flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col z-30 fixed lg:relative bottom-0 left-0 right-0 sidebar-mobile-enter lg:!transform-none"
+        class="w-full xl:w-[400px] h-[85dvh] xl:h-full rounded-t-3xl xl:rounded-none pb-safe flex-shrink-0 bg-slate-800 border-r border-slate-700 flex flex-col z-[1001] fixed xl:relative bottom-0 left-0 right-0 sidebar-mobile-enter xl:!transform-none"
       >
         <!-- Sidebar Header -->
         <div class="px-5 pt-5 pb-3 border-b border-slate-700">
@@ -89,7 +89,7 @@
             </div>
             <button
               id="closeSidebarBtn"
-              class="lg:hidden ml-auto p-2 rounded-lg hover:bg-slate-700 transition-colors"
+              class="xl:hidden ml-auto p-2 rounded-lg hover:bg-slate-700 transition-colors"
             >
               <i data-lucide="x" class="w-5 h-5 text-gray-400"></i>
             </button>
@@ -317,7 +317,7 @@
         <!-- Mobile Toggle -->
         <button
           id="openSidebarBtn"
-          class="lg:hidden fixed bottom-5 left-1/2 -translate-x-1/2 z-40 bg-slate-800 border border-slate-700 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
+          class="xl:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[1002] bg-slate-800 border border-slate-700 text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
         >
           <i data-lucide="layout-list" class="w-4 h-4"></i>
           <span class="text-sm font-medium font-heading">รายการโครงการ</span>
@@ -329,10 +329,12 @@
         </button>
 
         <!-- Map Layer Control -->
-        <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+        <div
+          class="absolute top-4 left-4 right-4 xl:left-auto xl:right-4 z-[1000] flex flex-row flex-wrap xl:flex-col gap-2 justify-end"
+        >
           <div
             id="mapControls"
-            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-row xl:flex-col gap-1"
           >
             <button
               id="layerStreet"
@@ -352,7 +354,7 @@
             </button>
           </div>
           <div
-            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-row xl:flex-col gap-1"
           >
             <button
               id="zoomIn"
@@ -377,7 +379,7 @@
             </button>
           </div>
           <div
-            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-row xl:flex-col gap-1"
           >
             <button
               id="toggleFullscreen"
@@ -390,7 +392,7 @@
           <!-- Boundary Controls -->
           <div
             id="boundaryControls"
-            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-row xl:flex-col gap-1"
           >
             <button
               id="toggleBoundary"
@@ -400,7 +402,9 @@
               <i data-lucide="map-pin" class="w-4 h-4"></i
               ><span class="hidden sm:inline">เขต</span>
             </button>
-            <div class="h-px bg-slate-700 my-0.5"></div>
+            <div
+              class="w-px h-auto xl:h-px xl:w-auto bg-slate-700 mx-1 xl:mx-0 xl:my-0.5"
+            ></div>
             <button
               id="boundaryDistrict"
               class="boundary-level-btn flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all text-gray-400 hover:text-white hover:bg-slate-700"
@@ -420,7 +424,7 @@
           </div>
           <!-- My Location -->
           <div
-            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-col gap-1"
+            class="bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-1.5 flex flex-row xl:flex-col gap-1"
           >
             <button
               id="toggleMyLocation"
@@ -436,7 +440,7 @@
         <!-- Map Legend -->
         <div
           id="mapLegend"
-          class="absolute bottom-5 right-4 z-[1000] bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3"
+          class="hidden xl:block absolute bottom-5 right-4 z-[1000] bg-slate-800 border border-slate-700 rounded-xl shadow-lg p-3"
         >
           <p
             class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2"

@@ -1200,7 +1200,7 @@
     closeBtn.addEventListener("click", () => { sidebar.classList.remove("active"); openBtn.classList.remove("hidden"); });
 
     state.map.on("click", () => {
-      if (window.innerWidth < 1024) { sidebar.classList.remove("active"); openBtn.classList.remove("hidden"); }
+      if (window.innerWidth < 1280) { sidebar.classList.remove("active"); openBtn.classList.remove("hidden"); }
     });
   }
 
@@ -1239,7 +1239,7 @@
         mapControls.style.display = "";
         mapLegend.style.display = "";
         boundaryControls.style.display = "";
-        if (window.innerWidth >= 1024) {
+        if (window.innerWidth >= 1280) {
           openBtn.style.display = "none";
         } else {
           openBtn.style.display = "";
