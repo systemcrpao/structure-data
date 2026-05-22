@@ -130,3 +130,12 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .project-card.active .text-gray-400 { color: #d1d5db !important; }
 
 .stat-value { font-variant-numeric: tabular-nums; }
+
+/* Legend panel slide-up animation */
+#mapLegend:not(.hidden) {
+  animation: legendSlideUp 0.18s ease-out;
+}
+@keyframes legendSlideUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

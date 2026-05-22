@@ -1205,6 +1205,23 @@
   }
 
   // =============================================
+  // LEGEND TOGGLE
+  // =============================================
+  function setupLegendToggle() {
+    const btn = document.getElementById("legendToggleBtn");
+    const legend = document.getElementById("mapLegend");
+    const chevron = document.getElementById("legendChevron");
+    if (!btn || !legend) return;
+
+    btn.addEventListener("click", () => {
+      const isOpen = !legend.classList.contains("hidden");
+      legend.classList.toggle("hidden", isOpen);
+      chevron.setAttribute("data-lucide", isOpen ? "chevron-up" : "chevron-down");
+      lucide.createIcons();
+    });
+  }
+
+  // =============================================
   // FULLSCREEN MODE TOGGLE
   // =============================================
   function setupFullscreenToggle() {
@@ -1212,6 +1229,7 @@
     const sidebar = document.getElementById("sidebar");
     const mapControls = document.getElementById("mapControls");
     const mapLegend = document.getElementById("mapLegend");
+    const legendToggleBtn = document.getElementById("legendToggleBtn");
     const boundaryControls = document.getElementById("boundaryControls");
     const openBtn = document.getElementById("openSidebarBtn");
     
@@ -1224,7 +1242,8 @@
         // ซ่อนเมนูด้านซ้าย และ controls ด้านขวา (ยกเว้นปุ่ม toggle)
         sidebar.style.display = "none";
         mapControls.style.display = "none";
-        mapLegend.style.display = "none";
+        mapLegend.classList.add("hidden");
+        if (legendToggleBtn) legendToggleBtn.style.display = "none";
         boundaryControls.style.display = "none";
         openBtn.style.display = "none";
         
@@ -1237,7 +1256,7 @@
         // แสดงเมนูทั้งหมดกลับมา
         sidebar.style.display = "";
         mapControls.style.display = "";
-        mapLegend.style.display = "";
+        if (legendToggleBtn) legendToggleBtn.style.display = "";
         boundaryControls.style.display = "";
         if (window.innerWidth >= 1280) {
           openBtn.style.display = "none";
@@ -1574,6 +1593,7 @@
     setupZoomControls();
     setupMobileToggle();
     setupFullscreenToggle();
+    setupLegendToggle();
     setupBoundaryControls();  // Setup boundary controls
     setupMyLocation();  // Setup GPS location
     setupEventListeners();
