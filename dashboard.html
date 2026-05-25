@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — CR-Vision CRPAO</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              prompt: ["Prompt", "sans-serif"],
+              sarabun: ["Sarabun", "sans-serif"],
+            },
+            colors: {
+              brand: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                200: "#bfdbfe",
+                300: "#93c5fd",
+                400: "#60a5fa",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                800: "#1e3a5f",
+                900: "#0f1d35",
+                950: "#0a1628",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Sarabun", sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      .font-heading {
+        font-family: "Prompt", sans-serif;
+      }
+
+      .custom-scroll::-webkit-scrollbar {
+        width: 5px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.45);
+        border-radius: 3px;
+      }
+
+      /* Animated login card */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .login-card {
+        animation: fadeUp 0.45s ease-out both;
+      }
+
+      /* Spinner */
+      .spinner {
+        border: 3px solid rgba(59, 130, 246, 0.15);
+        border-top: 3px solid #3b82f6;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* KPI card hover glow */
+      .kpi-card {
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s;
+      }
+      .kpi-card:hover {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+      }
+
+      /* Shake on wrong password */
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20%,
+        60% {
+          transform: translateX(-8px);
+        }
+        40%,
+        80% {
+          transform: translateX(8px);
+        }
+      }
+      .shake {
+        animation: shake 0.4s ease;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-900 text-gray-100 h-screen overflow-hidden">
+    <!-- ═══════════════════════════════════════════
+         LOGIN OVERLAY
+    ═══════════════════════════════════════════ -->
+    <div
+      id="loginOverlay"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-95 backdrop-blur-sm"
+    >
+      <!-- Background pattern -->
+      <div
+        class="absolute inset-0 opacity-5 pointer-events-none"
+        style="
+          background-image:
+            radial-gradient(circle at 20% 35%, #3b82f6 0, transparent 50%),
+            radial-gradient(circle at 80% 60%, #06b6d4 0, transparent 50%);
+        "
+      ></div>
+
+      <div class="login-card relative w-full max-w-sm mx-4">
+        <div
+          class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8"
+        >
+          <!-- Logo -->
+          <div class="flex items-center gap-3 mb-7">
+            <div
+              class="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30"
+            >
+              <i data-lucide="radar" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+              <h1
+                class="font-heading text-base font-bold text-white leading-none"
+              >
+                CR-Vision
+              </h1>
+              <p class="text-[11px] text-blue-400 font-medium">
+                ระบบ Dashboard &amp; วิเคราะห์การใช้งาน
+              </p>
+            </div>
+          </div>
+
+          <h2 class="font-heading text-xl font-semibold text-white mb-1">
+            เข้าสู่ระบบ
+          </h2>
+          <p class="text-sm text-gray-400 mb-6">
+            เข้าสู่ระบบเพื่อดู Dashboard สถิติการใช้งาน
+          </p>
+
+          <form id="loginForm" novalidate>
+            <!-- Username -->
+            <div class="mb-4">
+              <label class="block text-xs font-medium text-gray-400 mb-1.5"
+                >ชื่อผู้ใช้</label
+              >
+              <div class="relative">
+                <i
+                  data-lucide="user"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                ></i>
+                <input
+                  id="loginUser"
+                  type="text"
+                  autocomplete="username"
+                  required
+                  placeholder="ชื่อผู้ใช้"
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-5">
+              <label class="block text-xs font-medium text-gray-400 mb-1.5"
+                >รหัสผ่าน</label
+              >
+              <div class="relative">
+                <i
+                  data-lucide="lock"
+                  class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none"
+                ></i>
+                <input
+                  id="loginPass"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                  placeholder="รหัสผ่าน"
+                  class="w-full pl-10 pr-11 py-2.5 bg-slate-700 border border-slate-600 rounded-xl text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                />
+                <button
+                  type="button"
+                  id="togglePassBtn"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                >
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Error message -->
+            <p
+              id="loginError"
+              class="hidden text-sm text-red-400 bg-red-900/30 border border-red-800/50 rounded-lg px-3 py-2 mb-4"
+            >
+              ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+            </p>
+
+            <!-- Submit -->
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <span id="loginBtnText">เข้าสู่ระบบ</span>
+              <div
+                id="loginSpinner"
+                class="hidden spinner"
+                style="width: 18px; height: 18px; border-width: 2px"
+              ></div>
+            </button>
+          </form>
+
+          <div class="mt-5 text-center">
+            <a
+              href="index.html"
+              class="text-xs text-gray-500 hover:text-blue-400 transition-colors"
+            >
+              ← กลับไปยังแผนที่หลัก
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         DASHBOARD APP (hidden until logged in)
+    ═══════════════════════════════════════════ -->
+    <div id="dashboardApp" class="hidden flex-col h-screen">
+      <!-- TOP BAR -->
+      <header
+        class="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-5 py-3 flex items-center justify-between z-10"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center"
+          >
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-white"></i>
+          </div>
+          <div>
+            <h1 class="font-heading text-sm font-bold text-white leading-none">
+              Dashboard วิเคราะห์การใช้งาน
+            </h1>
+            <p class="text-[10px] text-blue-400">CR-Vision · อบจ.เชียงราย</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Last updated -->
+          <span
+            id="lastUpdated"
+            class="hidden sm:block text-[11px] text-gray-500 mr-2"
+          ></span>
+          <!-- Export -->
+          <button
+            id="exportBtn"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+          >
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">ส่งออก CSV</span>
+          </button>
+          <!-- Back to map -->
+          <a
+            href="index.html"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+          >
+            <i data-lucide="map" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">แผนที่</span>
+          </a>
+          <!-- Logout -->
+          <button
+            id="logoutBtn"
+            class="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/60 hover:bg-red-800 rounded-lg text-xs text-red-300 hover:text-white transition-colors"
+          >
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">ออกจากระบบ</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN CONTENT -->
+      <main
+        id="dashboardMain"
+        class="flex-1 overflow-y-auto custom-scroll p-4 lg:p-6 bg-slate-900"
+      >
+        <!-- ── KPI CARDS ── -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="users"
+                  class="w-4.5 h-4.5 text-blue-400"
+                  style="width: 18px; height: 18px"
+                ></i>
+              </div>
+              <span
+                id="kpiVisitorTrend"
+                class="text-[10px] text-emerald-400 font-medium"
+              ></span>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiTotalSessions"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">การเข้าใช้งานทั้งหมด</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="calendar-check"
+                  style="width: 18px; height: 18px"
+                  class="text-emerald-400"
+                ></i>
+              </div>
+              <span class="text-[10px] text-gray-500 font-medium">วันนี้</span>
+            </div>
+            <p class="text-2xl font-bold text-white font-heading" id="kpiToday">
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">ครั้งที่เข้าใช้วันนี้</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="repeat-2"
+                  style="width: 18px; height: 18px"
+                  class="text-purple-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiReturning"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">ผู้ใช้ที่กลับมาใช้ซ้ำ</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="timer"
+                  style="width: 18px; height: 18px"
+                  class="text-amber-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiAvgDuration"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">เวลาใช้งานเฉลี่ย (นาที)</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="mouse-pointer-click"
+                  style="width: 18px; height: 18px"
+                  class="text-cyan-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiTotalEvents"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">การกระทำทั้งหมด (events)</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-rose-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="search"
+                  style="width: 18px; height: 18px"
+                  class="text-rose-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiSearches"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">การค้นหาโครงการ</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-teal-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="folder-open"
+                  style="width: 18px; height: 18px"
+                  class="text-teal-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiProjectClicks"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">คลิกดูโครงการ</p>
+          </div>
+
+          <div
+            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div
+                class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center"
+              >
+                <i
+                  data-lucide="clock-4"
+                  style="width: 18px; height: 18px"
+                  class="text-indigo-400"
+                ></i>
+              </div>
+            </div>
+            <p
+              class="text-2xl font-bold text-white font-heading"
+              id="kpiPeakHour"
+            >
+              —
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">ชั่วโมงที่ใช้งานมากสุด</p>
+          </div>
+        </section>
+
+        <!-- ── CHARTS ROW 1 ── -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+          <!-- Daily sessions bar chart (spans 2 cols) -->
+          <div
+            class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-4"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  การเข้าใช้งานรายวัน
+                </h2>
+                <p class="text-[11px] text-gray-500">30 วันล่าสุด</p>
+              </div>
+              <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
+            </div>
+            <div class="h-48">
+              <canvas id="chartDaily"></canvas>
+            </div>
+          </div>
+
+          <!-- Device / Browser doughnut -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  อุปกรณ์ที่ใช้
+                </h2>
+                <p class="text-[11px] text-gray-500">Device type</p>
+              </div>
+              <i
+                data-lucide="monitor-smartphone"
+                class="w-4 h-4 text-purple-400"
+              ></i>
+            </div>
+            <div class="h-36 flex items-center justify-center">
+              <canvas id="chartDevice"></canvas>
+            </div>
+            <div id="deviceLegend" class="mt-3 space-y-1"></div>
+          </div>
+        </section>
+
+        <!-- ── CHARTS ROW 2 ── -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <!-- Hourly usage line chart -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  ช่วงเวลาที่นิยมใช้งาน
+                </h2>
+                <p class="text-[11px] text-gray-500">
+                  การเข้าใช้แบ่งตามชั่วโมง
+                </p>
+              </div>
+              <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
+            </div>
+            <div class="h-44">
+              <canvas id="chartHourly"></canvas>
+            </div>
+          </div>
+
+          <!-- Browser breakdown -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  เบราว์เซอร์ที่ใช้
+                </h2>
+                <p class="text-[11px] text-gray-500">Browser breakdown</p>
+              </div>
+              <i data-lucide="globe" class="w-4 h-4 text-teal-400"></i>
+            </div>
+            <div class="h-44">
+              <canvas id="chartBrowser"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── FEATURE USAGE TABLE ── -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  ฟีเจอร์ที่ใช้บ่อยที่สุด
+                </h2>
+                <p class="text-[11px] text-gray-500">
+                  จำนวนครั้งที่ใช้งานเครื่องมือต่าง ๆ
+                </p>
+              </div>
+              <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+            </div>
+            <div class="space-y-2" id="featureTable">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+          <!-- Referrer / traffic source -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  แหล่งที่มาของผู้เข้าชม
+                </h2>
+                <p class="text-[11px] text-gray-500">Traffic source</p>
+              </div>
+              <i data-lucide="link" class="w-4 h-4 text-rose-400"></i>
+            </div>
+            <div class="space-y-2" id="referrerTable">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ── RECENT SESSIONS TABLE ── -->
+        <section
+          class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-4"
+        >
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="font-heading text-sm font-semibold text-white">
+                รายการเข้าใช้งานล่าสุด
+              </h2>
+              <p class="text-[11px] text-gray-500">20 รายการล่าสุด</p>
+            </div>
+            <i data-lucide="list" class="w-4 h-4 text-gray-400"></i>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left">
+              <thead>
+                <tr class="border-b border-slate-700">
+                  <th class="pb-2 text-gray-400 font-medium pr-4">
+                    วันที่/เวลา
+                  </th>
+                  <th class="pb-2 text-gray-400 font-medium pr-4">อุปกรณ์</th>
+                  <th class="pb-2 text-gray-400 font-medium pr-4">
+                    เบราว์เซอร์
+                  </th>
+                  <th class="pb-2 text-gray-400 font-medium pr-4">หน้าจอ</th>
+                  <th class="pb-2 text-gray-400 font-medium pr-4">
+                    แหล่งที่มา
+                  </th>
+                  <th class="pb-2 text-gray-400 font-medium pr-4">
+                    เวลาใช้งาน
+                  </th>
+                  <th class="pb-2 text-gray-400 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sessionTable" class="divide-y divide-slate-700/50">
+                <!-- populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ── ACTIONS ── -->
+        <section class="flex flex-wrap gap-3 mb-6">
+          <button
+            id="exportCsvBtn"
+            class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-xl transition-colors"
+          >
+            <i data-lucide="download" class="w-4 h-4"></i>
+            ส่งออกข้อมูล CSV
+          </button>
+          <button
+            id="clearDataBtn"
+            class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-red-900/60 text-gray-300 hover:text-red-300 text-sm rounded-xl transition-colors border border-slate-600 hover:border-red-800/50"
+          >
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            ล้างข้อมูล Analytics
+          </button>
+          <a
+            href="index.html"
+            class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white text-sm rounded-xl transition-colors border border-slate-600"
+          >
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+            กลับไปยังแผนที่
+          </a>
+        </section>
+
+        <!-- Footer note -->
+        <p class="text-[11px] text-gray-600 text-center pb-4">
+          ข้อมูลถูกเก็บเฉพาะบนเบราว์เซอร์นี้ (localStorage) ·
+          สำหรับสถิติข้ามอุปกรณ์ โปรดเชื่อมต่อ Google Analytics
+        </p>
+      </main>
+    </div>
+
+    <!-- Config (gitignored — injected by GitHub Actions) -->
+    <script src="dashboard-config.js"></script>
+    <script src="dashboard.js"></script>
+  </body>
+</html>
