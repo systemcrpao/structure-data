@@ -1,2 +1,2 @@
 # ไฟล์ config ที่มี credentials — ห้าม commit
-dashboard-config.js
+frontend/dashboard-config.js

@@ -1,63 +1,23 @@
 /* =============================================
    CR-Vision Dashboard — Logic
-
-   Credentials อยู่ใน dashboard-config.js (อยู่ใน .gitignore)
-   ไม่ถูก commit ไป GitHub — สร้างโดย GitHub Actions
+   Auth ใช้ CRAuth (auth.js) — ไม่มี login form ที่นี่อีกแล้ว
    ============================================= */
 (function () {
   'use strict';
 
-  // อ่าน config จาก dashboard-config.js (ไม่อยู่ใน repo)
-  const cfg = window.DASHBOARD_CONFIG;
-
   // =============================================
-  // CONFIGURATION — อ่านจาก config file
+  // AUTH GUARD — ต้องมี session และ role = director (หรือ admin)
   // =============================================
-  const CONFIG = {
-    USERNAME:      cfg ? cfg.USERNAME      : null,
-    PASSWORD_HASH: cfg ? cfg.PASSWORD_HASH : null,
-    SESSION_KEY:   'crpao_dash_auth',
-    SESSION_HOURS: 8,
-    ANALYTICS_KEY: 'crpao_analytics',
-  };
-
-  // =============================================
-  // AUTH HELPERS
-  // =============================================
-  async function sha256(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-  }
-
-  function isLoggedIn() {
-    try {
-      const raw = sessionStorage.getItem(CONFIG.SESSION_KEY);
-      if (!raw) return false;
-      const data = JSON.parse(raw);
-      if (!data || !data.ts) return false;
-      // ตรวจ session อายุ
-      if (Date.now() - data.ts > CONFIG.SESSION_HOURS * 3600 * 1000) {
-        sessionStorage.removeItem(CONFIG.SESSION_KEY);
-        return false;
-      }
-      return data.user === CONFIG.USERNAME;
-    } catch (e) { return false; }
-  }
-
-  function setSession() {
-    sessionStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify({
-      user: CONFIG.USERNAME,
-      ts:   Date.now()
-    }));
-  }
-
-  function clearSession() {
-    sessionStorage.removeItem(CONFIG.SESSION_KEY);
-  }
+  var _session = window.CRAuth.requireRole(['director']);
+  // requireRole คืนค่า session object ถ้าผ่าน หรือ redirect ถ้าไม่ผ่าน
 
   // =============================================
   // ANALYTICS DATA
   // =============================================
+  const CONFIG = {
+    ANALYTICS_KEY: 'crpao_analytics',
+  };
+
   function getAnalyticsData() {
     try {
       return JSON.parse(localStorage.getItem(CONFIG.ANALYTICS_KEY)) || { sessions: [], events: [] };
@@ -69,96 +29,26 @@
   // =============================================
   const $ = function (id) { return document.getElementById(id); };
 
-  const loginOverlay  = $('loginOverlay');
-  const dashboardApp  = $('dashboardApp');
-  const loginForm     = $('loginForm');
-  const loginError    = $('loginError');
-  const loginUser     = $('loginUser');
-  const loginPass     = $('loginPass');
-  const loginSpinner  = $('loginSpinner');
-  const loginBtnText  = $('loginBtnText');
-  const togglePassBtn = $('togglePassBtn');
-
   // =============================================
-  // SHOW / HIDE VIEWS
+  // INIT — Session ผ่านแล้ว เริ่ม build dashboard ได้เลย
   // =============================================
-  function showDashboard() {
-    loginOverlay.classList.add('hidden');
-    dashboardApp.classList.remove('hidden');
-    dashboardApp.classList.add('flex');
-    buildDashboard();
-    lucide.createIcons();
-  }
+  if (!_session) return; // กำลัง redirect อยู่ — หยุดทำงาน
 
-  function showLogin() {
-    dashboardApp.classList.add('hidden');
-    dashboardApp.classList.remove('flex');
-    loginOverlay.classList.remove('hidden');
-  }
+  buildDashboard();
+  lucide.createIcons();
 
-  function showConfigError() {
-    loginUser.disabled = true;
-    loginPass.disabled = true;
-    loginForm.querySelector('button[type=submit]').disabled = true;
-    loginError.textContent = 'ไม่พบไฟล์ dashboard-config.js — โปรดตรวจสอบการตั้งค่า GitHub Actions';
-    loginError.classList.remove('hidden');
-  }
-
-  // =============================================
-  // LOGIN FLOW
-  // =============================================
-  togglePassBtn.addEventListener('click', function () {
-    const isText = loginPass.type === 'text';
-    loginPass.type = isText ? 'password' : 'text';
-    // swap icon
-    togglePassBtn.innerHTML = isText
-      ? '<i data-lucide="eye" class="w-4 h-4"></i>'
-      : '<i data-lucide="eye-off" class="w-4 h-4"></i>';
-    lucide.createIcons({ nodes: [togglePassBtn] });
-  });
-
-  loginForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    const username = loginUser.value.trim();
-    const password = loginPass.value;
-    if (!username || !password) return;
-
-    const hash = await sha256(password);
-    if (username === CONFIG.USERNAME && hash === CONFIG.PASSWORD_HASH) {
-      setSession();
-      showDashboard();
-    } else {
-      loginError.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-      loginError.classList.remove('hidden');
-      loginForm.classList.add('shake');
-      loginPass.value = '';
-      loginPass.focus();
-      setTimeout(function () { loginForm.classList.remove('shake'); }, 500);
+  // แสดง user label ใน top bar
+  (function () {
+    var el = $('dashUserLabel');
+    if (el && _session) {
+      var label = _session.displayRole || window.CRAuth.getRoleLabel(_session.role);
+      el.textContent = _session.user + ' · ' + label;
     }
-  });
+  })();
 
   // Logout
-  $('logoutBtn').addEventListener('click', function () {
-    clearSession();
-    showLogin();
-    loginUser.value = '';
-    loginPass.value = '';
-  });
+  $('logoutBtn').addEventListener('click', function () { window.CRAuth.logout(); });
   $('exportBtn').addEventListener('click', exportCSV);
-
-  // =============================================
-  // INITIAL AUTH CHECK
-  // =============================================
-  if (isLoggedIn()) {
-    showDashboard();
-  } else if (!cfg) {
-    showLogin();
-    showConfigError();
-    lucide.createIcons();
-  } else {
-    showLogin();
-    lucide.createIcons();
-  }
 
   // =============================================
   // CHART.JS DEFAULTS (dark theme)

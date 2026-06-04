@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>แผงควบคุมผู้ดูแลระบบ — CR-Vision</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              prompt: ["Prompt", "sans-serif"],
+              sarabun: ["Sarabun", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Auth Guard — admin only -->
+    <script src="gas-config.js"></script>
+    <script src="auth.js"></script>
+    <script>
+      var __session = window.CRAuth.requireRole([]); // ผ่านเฉพาะ admin (empty allowedRoles)
+      // requireRole([]) + admin bypass → admin เท่านั้น
+    </script>
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Sarabun", sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      .font-heading {
+        font-family: "Prompt", sans-serif;
+      }
+      .custom-scroll::-webkit-scrollbar {
+        width: 5px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(71, 85, 105, 0.5);
+        border-radius: 3px;
+      }
+
+      .nav-card {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1.25rem;
+        border-radius: 1rem;
+        border: 1px solid #334155;
+        background: #1e293b;
+        transition:
+          box-shadow 0.2s,
+          transform 0.2s,
+          border-color 0.2s;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .nav-card:hover {
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        transform: translateY(-2px);
+        border-color: #3b82f6;
+      }
+
+      .spinner {
+        border: 3px solid rgba(59, 130, 246, 0.15);
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .role-badge {
+        font-size: 0.65rem;
+        font-weight: 600;
+        padding: 0.15rem 0.5rem;
+        border-radius: 9999px;
+      }
+      .badge-admin {
+        background: #1d4ed8;
+        color: #bfdbfe;
+      }
+      .badge-director {
+        background: #065f46;
+        color: #a7f3d0;
+      }
+      .badge-user {
+        background: #92400e;
+        color: #fef3c7;
+      }
+      .badge-approve {
+        background: #4c1d95;
+        color: #ede9fe;
+      }
+    </style>
+  </head>
+
+  <body class="bg-slate-900 text-gray-100 min-h-screen flex flex-col">
+    <!-- ── TOP BAR ─────────────────────────────────────── -->
+    <header
+      class="flex-shrink-0 bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-20"
+    >
+      <div class="flex items-center gap-3">
+        <div
+          class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-orange-400 flex items-center justify-center"
+        >
+          <i data-lucide="shield-check" class="w-4 h-4 text-white"></i>
+        </div>
+        <div>
+          <h1 class="font-heading text-sm font-bold text-white leading-none">
+            แผงควบคุมผู้ดูแลระบบ
+          </h1>
+          <p class="text-[10px] text-red-400">CR-Vision · Admin Panel</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <div
+          class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-red-900/40 border border-red-700/50 rounded-full"
+        >
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-red-400"></i>
+          <span id="userLabel" class="text-xs text-red-300 font-medium"
+            >ผู้ดูแลระบบ</span
+          >
+        </div>
+        <button
+          id="logoutBtn"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+        >
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">ออกจากระบบ</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── MAIN ──────────────────────────────────────────── -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
+      <!-- Welcome -->
+      <div class="mb-6">
+        <h2 class="font-heading text-xl font-bold text-white">
+          ยินดีต้อนรับ, <span id="adminName" class="text-red-400">Admin</span>
+        </h2>
+        <p class="text-sm text-gray-400 mt-1">
+          คุณมีสิทธิ์เข้าถึงทุกส่วนของระบบ
+        </p>
+      </div>
+
+      <!-- Navigation Cards -->
+      <section class="mb-8">
+        <h3
+          class="font-heading text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3"
+        >
+          เมนูหลัก
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <a href="index.html" class="nav-card">
+            <div
+              class="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-600/40 flex items-center justify-center mb-3"
+            >
+              <i data-lucide="map" class="w-5 h-5 text-blue-400"></i>
+            </div>
+            <p class="text-sm font-semibold text-white">แผนที่โครงการ</p>
+            <p class="text-xs text-gray-400 mt-0.5">ดูโครงการบนแผนที่</p>
+          </a>
+
+          <a href="dashboard.html" class="nav-card">
+            <div
+              class="w-9 h-9 rounded-xl bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center mb-3"
+            >
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-emerald-400"></i>
+            </div>
+            <p class="text-sm font-semibold text-white">Dashboard</p>
+            <p class="text-xs text-gray-400 mt-0.5">สถิติการใช้งาน</p>
+          </a>
+
+          <a href="technician.html" class="nav-card">
+            <div
+              class="w-9 h-9 rounded-xl bg-amber-600/20 border border-amber-600/40 flex items-center justify-center mb-3"
+            >
+              <i data-lucide="hard-hat" class="w-5 h-5 text-amber-400"></i>
+            </div>
+            <p class="text-sm font-semibold text-white">เพิ่มโครงการ</p>
+            <p class="text-xs text-gray-400 mt-0.5">ช่างเทคนิค</p>
+          </a>
+
+          <a href="treasury.html" class="nav-card">
+            <div
+              class="w-9 h-9 rounded-xl bg-violet-600/20 border border-violet-600/40 flex items-center justify-center mb-3"
+            >
+              <i data-lucide="landmark" class="w-5 h-5 text-violet-400"></i>
+            </div>
+            <p class="text-sm font-semibold text-white">จัดการสถานะ</p>
+            <p class="text-xs text-gray-400 mt-0.5">การเงิน/คลัง</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- System Info -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <!-- User Management -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3
+              class="font-heading text-sm font-semibold text-white flex items-center gap-2"
+            >
+              <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
+              ผู้ใช้งานระบบ
+            </h3>
+            <button
+              onclick="loadUsers()"
+              class="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+            >
+              โหลดใหม่
+            </button>
+          </div>
+
+          <!-- Loading -->
+          <div
+            id="userLoading"
+            class="flex items-center gap-2 text-gray-500 text-sm"
+          >
+            <div
+              class="spinner"
+              style="width: 18px; height: 18px; border-width: 2px"
+            ></div>
+            <span>กำลังโหลด...</span>
+          </div>
+
+          <!-- User list -->
+          <div
+            id="userList"
+            class="hidden divide-y divide-slate-700/50 -mx-1"
+          ></div>
+        </div>
+
+        <!-- Security Info -->
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+          <h3
+            class="font-heading text-sm font-semibold text-white flex items-center gap-2 mb-4"
+          >
+            <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i>
+            ข้อมูลความปลอดภัย
+          </h3>
+          <div class="space-y-2.5 text-sm">
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>ตรวจสอบรหัสผ่านด้วย SHA-256</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>Token ใช้ HMAC-SHA256, อายุ 8 ชั่วโมง</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>ล็อคบัญชีหลังผิด 5 ครั้ง (15 นาที)</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>Session เก็บใน sessionStorage เท่านั้น</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>Role-based access control ทุกหน้า</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-300">
+              <i
+                data-lucide="check-circle"
+                class="w-4 h-4 text-emerald-400 flex-shrink-0"
+              ></i>
+              <span>Audit log ทุก action ที่แก้ไขข้อมูล</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session Info -->
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+        <h3
+          class="font-heading text-sm font-semibold text-white flex items-center gap-2 mb-4"
+        >
+          <i data-lucide="clock" class="w-4 h-4 text-blue-400"></i>
+          Session ปัจจุบัน
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
+          <div>
+            <p class="text-gray-400 text-xs mb-1">ผู้ใช้</p>
+            <p class="font-semibold text-white" id="sessUser">—</p>
+          </div>
+          <div>
+            <p class="text-gray-400 text-xs mb-1">สิทธิ์</p>
+            <p class="font-semibold text-red-300" id="sessRole">—</p>
+          </div>
+          <div>
+            <p class="text-gray-400 text-xs mb-1">หมดอายุ</p>
+            <p class="font-semibold text-amber-300" id="sessExpiry">—</p>
+          </div>
+          <div>
+            <p class="text-gray-400 text-xs mb-1">GAS URL</p>
+            <p class="font-semibold text-xs truncate" id="sessGas">—</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      var session = window.CRAuth.getSession();
+
+      // ── User label ────────────────────────────────────────
+      if (session) {
+        document.getElementById("userLabel").textContent =
+          session.displayRole || window.CRAuth.getRoleLabel(session.role);
+        document.getElementById("adminName").textContent =
+          session.user || "Admin";
+
+        // Session info
+        document.getElementById("sessUser").textContent = session.user || "—";
+        document.getElementById("sessRole").textContent =
+          session.displayRole || session.role;
+        var expTime = new Date(session.expires);
+        document.getElementById("sessExpiry").textContent =
+          expTime.toLocaleTimeString("th-TH", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      var gasUrl = window.GAS_WEBAPP_URL || "";
+      var gasShort = gasUrl.includes("REPLACE_WITH")
+        ? "⚠️ ยังไม่ตั้งค่า"
+        : gasUrl
+            .replace("https://script.google.com/macros/s/", "…/")
+            .substring(0, 30) + "…";
+      document.getElementById("sessGas").textContent = gasShort;
+      document.getElementById("sessGas").className =
+        "font-semibold text-xs truncate " +
+        (gasUrl.includes("REPLACE_WITH") ? "text-red-400" : "text-emerald-400");
+
+      document
+        .getElementById("logoutBtn")
+        .addEventListener("click", function () {
+          window.CRAuth.logout();
+        });
+
+      lucide.createIcons();
+
+      // ── Load users ────────────────────────────────────────
+      var ROLE_BADGE = {
+        admin: "badge-admin",
+        director: "badge-director",
+        user: "badge-user",
+        approve: "badge-approve",
+      };
+      var ROLE_DISPLAY = {
+        admin: "ผู้ดูแลระบบ",
+        director: "ผู้อำนวยการ",
+        user: "ช่างเทคนิค",
+        approve: "การเงิน/คลัง",
+      };
+
+      async function loadUsers() {
+        document.getElementById("userLoading").classList.remove("hidden");
+        document.getElementById("userList").classList.add("hidden");
+        try {
+          var res = await window.CRAuth.callGAS({
+            action: "getUsers",
+            token: session ? session.token : "",
+          });
+          if (!res.success) throw new Error(res.error);
+          var users = res.users || [];
+          var list = document.getElementById("userList");
+          list.innerHTML = users
+            .map(function (u) {
+              var role = (u.role || "").toLowerCase();
+              var badge = ROLE_BADGE[role] || "badge-user";
+              var roleLbl = ROLE_DISPLAY[role] || role;
+              return (
+                '<div class="flex items-center justify-between px-1 py-2.5">' +
+                '<div class="flex items-center gap-2.5">' +
+                '<div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center">' +
+                '<i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i>' +
+                "</div>" +
+                '<span class="text-sm text-gray-200">' +
+                escHtml(u.username) +
+                "</span>" +
+                "</div>" +
+                '<span class="role-badge ' +
+                badge +
+                '">' +
+                escHtml(roleLbl) +
+                "</span>" +
+                "</div>"
+              );
+            })
+            .join("");
+          list.classList.remove("hidden");
+          lucide.createIcons({ nodes: [list] });
+        } catch (err) {
+          document.getElementById("userList").innerHTML =
+            '<p class="text-xs text-red-400 px-1 py-2">โหลดไม่สำเร็จ: ' +
+            escHtml(err.message) +
+            "</p>";
+          document.getElementById("userList").classList.remove("hidden");
+        } finally {
+          document.getElementById("userLoading").classList.add("hidden");
+        }
+      }
+
+      function escHtml(str) {
+        return (str || "")
+          .toString()
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      loadUsers();
+    </script>
+  </body>
+</html>

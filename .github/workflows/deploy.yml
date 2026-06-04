@@ -29,7 +29,7 @@ jobs:
       # (ไฟล์นี้ไม่อยู่ใน repo แต่ถูกสร้างขณะ build)
       - name: Generate dashboard config
         run: |
-          cat > dashboard-config.js << 'EOF'
+          cat > frontend/dashboard-config.js << 'EOF'
           window.DASHBOARD_CONFIG = {
             USERNAME:      "${{ secrets.DASH_USERNAME }}",
             PASSWORD_HASH: "${{ secrets.DASH_PASSWORD_HASH }}",
@@ -42,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "."
+          path: "frontend"
 
       - name: Deploy to GitHub Pages
         id: deployment

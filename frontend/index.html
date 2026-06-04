@@ -59,6 +59,10 @@
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Auth — โหลดเพื่อแสดง user bar ถ้า login แล้ว (หน้าแผนที่เปิดสาธารณะ ไม่บังคับ login) -->
+    <script src="gas-config.js"></script>
+    <script src="auth.js"></script>
   </head>
 
   <body class="bg-slate-900 text-gray-100 h-[100dvh] overflow-hidden">
@@ -92,6 +96,26 @@
               class="xl:hidden ml-auto p-2 rounded-lg hover:bg-slate-700 transition-colors"
             >
               <i data-lucide="x" class="w-5 h-5 text-gray-400"></i>
+            </button>
+          </div>
+
+          <!-- User Session Bar (ซ่อนอยู่ถ้ายังไม่ login, JS จะแสดงถ้า login แล้ว) -->
+          <div
+            id="mapSessionBar"
+            class="hidden flex items-center justify-between px-0.5 mb-3"
+          >
+            <div class="flex items-center gap-1.5">
+              <i
+                data-lucide="user-circle"
+                class="w-3.5 h-3.5 text-gray-500"
+              ></i>
+              <span id="mapUserLabel" class="text-[11px] text-gray-400">—</span>
+            </div>
+            <button
+              id="mapLogoutBtn"
+              class="flex items-center gap-1 text-[11px] text-gray-500 hover:text-red-400 transition-colors"
+            >
+              <i data-lucide="log-out" class="w-3 h-3"></i> ออกจากระบบ
             </button>
           </div>
 
@@ -534,5 +558,27 @@
     <script src="app.js"></script>
     <!-- Analytics Tracker -->
     <script src="analytics.js"></script>
+
+    <!-- Auth UI init — แสดง user bar เฉพาะเมื่อ login แล้ว -->
+    <script>
+      (function () {
+        var s = window.CRAuth.getSession();
+        var bar = document.getElementById("mapSessionBar");
+        if (!s) {
+          // ยังไม่ login — ซ่อน bar ทั้งหมด (ประชาชนเข้าดูแผนที่ได้โดยไม่ต้อง login)
+          return;
+        }
+        // login แล้ว — แสดง bar + ชื่อ + ปุ่ม logout
+        if (bar) bar.classList.replace("hidden", "flex");
+        var label = s.displayRole || window.CRAuth.getRoleLabel(s.role);
+        var el = document.getElementById("mapUserLabel");
+        if (el) el.textContent = s.user + " (" + label + ")";
+        var logoutBtn = document.getElementById("mapLogoutBtn");
+        if (logoutBtn)
+          logoutBtn.addEventListener("click", function () {
+            window.CRAuth.logout();
+          });
+      })();
+    </script>
   </body>
 </html>
