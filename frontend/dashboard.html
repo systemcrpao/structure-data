@@ -142,6 +142,10 @@
     <!-- Auth — เข้าได้เฉพาะ admin และ director -->
     <script src="gas-config.js"></script>
     <script src="auth.js"></script>
+
+    <!-- Theme -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
   </head>
 
   <body class="bg-slate-900 text-gray-100 h-screen overflow-hidden">
@@ -174,7 +178,7 @@
               <h1
                 class="font-heading text-base font-bold text-white leading-none"
               >
-                CR-Vision
+                ระบบบริหารจัดการโครงสร้างพื้นฐาน
               </h1>
               <p class="text-[11px] text-blue-400 font-medium">
                 ระบบ Dashboard &amp; วิเคราะห์การใช้งาน
@@ -291,7 +295,9 @@
             <h1 class="font-heading text-sm font-bold text-white leading-none">
               Dashboard วิเคราะห์การใช้งาน
             </h1>
-            <p class="text-[10px] text-blue-400">CR-Vision · อบจ.เชียงราย</p>
+            <p class="text-[10px] text-blue-400">
+              ระบบบริหารจัดการโครงสร้างพื้นฐาน · อบจ.เชียงราย
+            </p>
           </div>
         </div>
 
@@ -322,9 +328,19 @@
             <i data-lucide="map" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">แผนที่</span>
           </a>
+          <!-- Theme toggle -->
+          <button
+            onclick="CRTheme.toggle()"
+            title="สลับโหมดมืด/สว่าง"
+            class="flex items-center justify-center w-8 h-8 rounded-lg text-gray-400 hover:text-white hover:bg-slate-700 transition-colors"
+          >
+            <i data-lucide="sun" class="theme-icon-dark w-4 h-4"></i>
+            <i data-lucide="moon" class="theme-icon-light w-4 h-4"></i>
+          </button>
           <!-- Logout -->
           <button
             id="logoutBtn"
+            onclick="window.CRAuth.logout()"
             class="flex items-center gap-1.5 px-3 py-1.5 bg-red-900/60 hover:bg-red-800 rounded-lg text-xs text-red-300 hover:text-white transition-colors"
           >
             <i data-lucide="log-out" class="w-3.5 h-3.5"></i>

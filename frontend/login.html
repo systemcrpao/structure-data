@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>เข้าสู่ระบบ — CR-Vision อบจ.เชียงราย</title>
+    <title>เข้าสู่ระบบ — ระบบบริหารจัดการโครงสร้างพื้นฐาน</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -30,6 +30,10 @@
         },
       };
     </script>
+
+    <!-- Theme (โหลดก่อน body เพื่อป้องกัน FOUC) -->
+    <link rel="stylesheet" href="theme.css" />
+    <script src="theme.js"></script>
 
     <!-- Auth (ตรวจก่อน — ถ้า login แล้ว redirect ทันที) -->
     <script src="gas-config.js"></script>
@@ -98,6 +102,16 @@
   <body
     class="bg-slate-900 text-gray-100 min-h-screen flex items-center justify-center p-4"
   >
+    <!-- Theme toggle — floating top-right -->
+    <button
+      onclick="CRTheme.toggle()"
+      title="สลับโหมดมืด/สว่าง"
+      class="fixed top-4 right-4 z-50 flex items-center justify-center w-9 h-9 rounded-xl bg-slate-700 border border-slate-600 text-gray-400 hover:text-white hover:bg-slate-600 transition-colors"
+    >
+      <i data-lucide="sun" class="theme-icon-dark w-4 h-4"></i>
+      <i data-lucide="moon" class="theme-icon-light w-4 h-4"></i>
+    </button>
+
     <!-- Background glow -->
     <div
       class="fixed inset-0 pointer-events-none opacity-10"
@@ -120,10 +134,8 @@
             <i data-lucide="radar" class="w-6 h-6 text-white"></i>
           </div>
           <div>
-            <h1
-              class="font-heading text-base font-bold text-white leading-none"
-            >
-              CR-Vision
+            <h1 class="font-heading text-xs font-bold text-white leading-snug">
+              ระบบบริหารจัดการโครงสร้างพื้นฐาน
             </h1>
             <p class="text-[11px] text-blue-400 font-medium">
               ระบบบริหารจัดการโครงสร้างพื้นฐาน · อบจ.เชียงราย
@@ -249,16 +261,37 @@
 
       <!-- Version -->
       <p class="text-center text-[10px] text-gray-600 mt-3">
-        CR-Vision v2.0 · 2026
+        ระบบบริหารจัดการโครงสร้างพื้นฐาน v2.0 · 2026
       </p>
     </div>
 
     <script>
+      // ── Capture safe redirect target ─────────
+      var _loginRedirect = (function () {
+        var p = new URLSearchParams(window.location.search);
+        var r = p.get("redirect") || "";
+        // Allow only simple filenames — no path traversal or protocols
+        return /^[a-zA-Z0-9_\-]+\.html$/.test(r) ? r : "";
+      })();
+
+      // Only use redirect if the role's home matches the requested page
+      // admin always goes to admin.html regardless of redirect param
+      function getSafeDestination(role, redirect) {
+        if (
+          redirect &&
+          role !== "admin" &&
+          redirect === window.CRAuth.getRoleHome(role)
+        ) {
+          return redirect;
+        }
+        return window.CRAuth.getRoleHome(role);
+      }
+
       // ── ตรวจสอบ session ที่มีอยู่ ──────────────
       (function () {
         var s = window.CRAuth.getSession();
         if (s) {
-          window.location.replace(window.CRAuth.getRoleHome(s.role));
+          window.location.replace(getSafeDestination(s.role, _loginRedirect));
         }
       })();
 
@@ -279,6 +312,8 @@
       })();
 
       lucide.createIcons();
+      // Render theme toggle icons after lucide is ready
+      CRTheme.apply(CRTheme.get());
 
       // ── Toggle password visibility ─────────────
       var togglePassBtn = document.getElementById("togglePassBtn");
@@ -339,7 +374,9 @@
               result.token,
               result.displayRole,
             );
-            window.location.replace(window.CRAuth.getRoleHome(result.role));
+            window.location.replace(
+              getSafeDestination(result.role, _loginRedirect),
+            );
           } else {
             showError(result.error || "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
           }

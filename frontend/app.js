@@ -424,7 +424,7 @@
     );
 
     L.control.attribution({ position: "bottomleft", prefix: "" })
-      .addAttribution('&copy; <a href="https://openstreetmap.org" class="text-blue-400">OSM</a> | CR-Vision')
+      .addAttribution('&copy; <a href="https://openstreetmap.org" class="text-blue-400">OSM</a> | ระบบบริหารจัดการโครงสร้างพื้นฐาน')
       .addTo(state.map);
   }
 
