@@ -204,9 +204,9 @@ function sha256Hex(input) {
 function getRoleDisplay(role) {
   var map = {
     admin: "ผู้ดูแลระบบ",
-    director: "ผู้อำนวยการ",
-    user: "ช่างเทคนิค",
-    approve: "การเงิน/คลัง",
+    director: "ผู้บริหาร",
+    user: "ผู้บันทึกข้อมูล",
+    approve: "ผู้บันทึกสถานะ",
   };
   return map[role] || role;
 }
@@ -578,19 +578,21 @@ function handleAddUser(params, session) {
 
   var username = sanitize((params.username || "").toLowerCase().trim());
   var password = sanitize(params.password || "");
-  var role     = sanitize((params.role || "").toLowerCase().trim());
+  var role = sanitize((params.role || "").toLowerCase().trim());
 
   if (!username) return error_("กรุณาระบุชื่อผู้ใช้");
   if (!/^[a-z0-9._-]{3,30}$/.test(username))
-    return error_("ชื่อผู้ใช้ต้องเป็นตัวอักษร a-z, 0-9, . _ - และมีความยาว 3-30 ตัวอักษร");
+    return error_(
+      "ชื่อผู้ใช้ต้องเป็นตัวอักษร a-z, 0-9, . _ - และมีความยาว 3-30 ตัวอักษร",
+    );
   if (!password || password.length < 6)
     return error_("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
   if (["admin", "director", "user", "approve"].indexOf(role) === -1)
     return error_("บทบาทไม่ถูกต้อง");
 
-  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var ss = SpreadsheetApp.openById(AUTH_SHEET_ID);
   var sheet = ss.getSheets()[0];
-  var data  = sheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
 
   // ตรวจสอบชื่อผู้ใช้ซ้ำ
   for (var i = 1; i < data.length; i++) {
@@ -599,7 +601,7 @@ function handleAddUser(params, session) {
     }
   }
 
-  var newId   = data.length; // id = จำนวนแถวทั้งหมด (header + data)
+  var newId = data.length; // id = จำนวนแถวทั้งหมด (header + data)
   var passHash = sha256Hex(password);
   sheet.appendRow([newId, username, passHash, role]);
   logAudit_(session.username, "addUser", { username: username, role: role });
@@ -609,30 +611,41 @@ function handleAddUser(params, session) {
 function handleUpdateUser(params, session) {
   requireRole_(session, ["admin"]);
 
-  var userId   = parseInt(params.userId, 10);
-  var newRole  = sanitize((params.role || "").toLowerCase().trim());
-  var newPass  = sanitize(params.password || "");
+  var userId = parseInt(params.userId, 10);
+  var newRole = sanitize((params.role || "").toLowerCase().trim());
+  var newPass = sanitize(params.password || "");
 
   if (isNaN(userId)) return error_("userId ไม่ถูกต้อง");
-  if (newRole && ["admin", "director", "user", "approve"].indexOf(newRole) === -1)
+  if (
+    newRole &&
+    ["admin", "director", "user", "approve"].indexOf(newRole) === -1
+  )
     return error_("บทบาทไม่ถูกต้อง");
   if (newPass && newPass.length < 6)
     return error_("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
 
-  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var ss = SpreadsheetApp.openById(AUTH_SHEET_ID);
   var sheet = ss.getSheets()[0];
-  var data  = sheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
 
   for (var i = 1; i < data.length; i++) {
     if (parseInt(data[i][0], 10) === userId) {
       var targetUser = (data[i][1] || "").toString().trim();
       // ห้าม admin แก้ role ตัวเอง
-      if (targetUser.toLowerCase() === session.username.toLowerCase() && newRole && newRole !== data[i][3]) {
+      if (
+        targetUser.toLowerCase() === session.username.toLowerCase() &&
+        newRole &&
+        newRole !== data[i][3]
+      ) {
         return error_("ไม่สามารถเปลี่ยน Role ของตัวเองได้");
       }
-      if (newRole)  sheet.getRange(i + 1, 4).setValue(newRole);
-      if (newPass)  sheet.getRange(i + 1, 3).setValue(sha256Hex(newPass));
-      logAudit_(session.username, "updateUser", { userId: userId, username: targetUser, role: newRole || "(ไม่เปลี่ยน)" });
+      if (newRole) sheet.getRange(i + 1, 4).setValue(newRole);
+      if (newPass) sheet.getRange(i + 1, 3).setValue(sha256Hex(newPass));
+      logAudit_(session.username, "updateUser", {
+        userId: userId,
+        username: targetUser,
+        role: newRole || "(ไม่เปลี่ยน)",
+      });
       return ok_({ message: "แก้ไขผู้ใช้สำเร็จ" });
     }
   }
@@ -645,9 +658,9 @@ function handleDeleteUser(params, session) {
   var userId = parseInt(params.userId, 10);
   if (isNaN(userId)) return error_("userId ไม่ถูกต้อง");
 
-  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var ss = SpreadsheetApp.openById(AUTH_SHEET_ID);
   var sheet = ss.getSheets()[0];
-  var data  = sheet.getDataRange().getValues();
+  var data = sheet.getDataRange().getValues();
 
   for (var i = 1; i < data.length; i++) {
     if (parseInt(data[i][0], 10) === userId) {
@@ -657,7 +670,10 @@ function handleDeleteUser(params, session) {
         return error_("ไม่สามารถลบบัญชีของตัวเองได้");
       }
       sheet.deleteRow(i + 1);
-      logAudit_(session.username, "deleteUser", { userId: userId, username: targetUser });
+      logAudit_(session.username, "deleteUser", {
+        userId: userId,
+        username: targetUser,
+      });
       return ok_({ message: "ลบผู้ใช้ " + targetUser + " สำเร็จ" });
     }
   }

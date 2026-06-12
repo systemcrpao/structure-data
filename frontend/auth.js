@@ -73,9 +73,9 @@
   function getRoleLabel(role) {
     var map = {
       'admin':    'ผู้ดูแลระบบ',
-      'director': 'ผู้อำนวยการ',
-      'user':     'ช่างเทคนิค',
-      'approve':  'การเงิน/คลัง'
+      'director': 'ผู้บริหาร',
+      'user':     'ผู้บันทึกข้อมูล',
+      'approve':  'ผู้บันทึกสถานะ'
     };
     return map[role] || role;
   }

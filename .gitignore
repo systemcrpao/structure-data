@@ -1,2 +1,4 @@
 # ไฟล์ config ที่มี credentials — ห้าม commit
 frontend/dashboard-config.js
+CR-Vision-Workflow-Guide.md
+.github/workflows/deploy.yml
