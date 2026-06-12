@@ -47,8 +47,6 @@
   $('lastUpdated').textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
   $('exportBtn').addEventListener('click', exportAnalyticsCSV);
 
-  loadSummary();
-
   // ═══════════════════════════════════════
   // TAB SWITCHING
   // ═══════════════════════════════════════
@@ -393,5 +391,10 @@
     if(!confirm('ต้องการล้างข้อมูล Analytics ทั้งหมดใช่หรือไม่?\n\nการดำเนินการนี้ไม่สามารถย้อนกลับได้'))return;
     localStorage.removeItem(ANALYTICS_KEY);buildAnalytics();
   }
+
+  // ═══════════════════════════════════════
+  // INITIAL LOAD (เรียกหลังนิยามฟังก์ชันทั้งหมดแล้ว)
+  // ═══════════════════════════════════════
+  loadSummary();
 
 })();
