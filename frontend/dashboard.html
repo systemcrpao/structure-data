@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard — ระบบบริหารจัดการโครงสร้างพื้นฐาน</title>
+    <title>
+      Dashboard —
+      ระบบบริหารจัดการโครงสร้างพื้นฐาน
+    </title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -108,34 +111,69 @@
         }
       }
 
-      /* KPI card hover glow */
+      /* KPI card hover */
       .kpi-card {
         transition:
           box-shadow 0.2s,
           transform 0.2s;
       }
       .kpi-card:hover {
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
         transform: translateY(-2px);
       }
 
-      /* Shake on wrong password */
-      @keyframes shake {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-        20%,
-        60% {
-          transform: translateX(-8px);
-        }
-        40%,
-        80% {
-          transform: translateX(8px);
-        }
+      /* Dashboard tab buttons */
+      .dash-tab-btn {
+        cursor: pointer;
+        border: none;
+        background: none;
+        border-bottom: 2px solid transparent;
+        color: #64748b;
+        transition:
+          color 0.15s,
+          border-color 0.15s;
+        white-space: nowrap;
       }
-      .shake {
-        animation: shake 0.4s ease;
+      .dash-tab-btn:hover {
+        color: #cbd5e1;
+      }
+      .active-tab {
+        color: #ffffff !important;
+        border-bottom-color: #3b82f6 !important;
+      }
+
+      /* Project summary status badges */
+      .sum-badge {
+        font-size: 0.68rem;
+        padding: 0.12rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .sum-s-done {
+        background: #052e16;
+        color: #4ade80;
+        border: 1px solid #166534;
+      }
+      .sum-s-progress {
+        background: #422006;
+        color: #fbbf24;
+        border: 1px solid #92400e;
+      }
+      .sum-s-wait {
+        background: #1e3a5f;
+        color: #93c5fd;
+        border: 1px solid #1d4ed8;
+      }
+      .sum-s-cancel {
+        background: #3f1818;
+        color: #f87171;
+        border: 1px solid #991b1b;
+      }
+      .sum-s-pause {
+        background: #2d2b2b;
+        color: #94a3b8;
+        border: 1px solid #475569;
       }
     </style>
 
@@ -181,7 +219,8 @@
                 ระบบบริหารจัดการโครงสร้างพื้นฐาน
               </h1>
               <p class="text-[11px] text-blue-400 font-medium">
-                ระบบ Dashboard &amp; วิเคราะห์การใช้งาน
+                ระบบ Dashboard &amp;
+                วิเคราะห์การใช้งาน
               </p>
             </div>
           </div>
@@ -190,7 +229,8 @@
             เข้าสู่ระบบ
           </h2>
           <p class="text-sm text-gray-400 mb-6">
-            เข้าสู่ระบบเพื่อดู Dashboard สถิติการใช้งาน
+            เข้าสู่ระบบเพื่อดู Dashboard
+            สถิติการใช้งาน
           </p>
 
           <form id="loginForm" novalidate>
@@ -296,7 +336,8 @@
               Dashboard วิเคราะห์การใช้งาน
             </h1>
             <p class="text-[10px] text-blue-400">
-              ระบบบริหารจัดการโครงสร้างพื้นฐาน · อบจ.เชียงราย
+              ระบบบริหารจัดการโครงสร้างพื้นฐาน
+              · อบจ.เชียงราย
             </p>
           </div>
         </div>
@@ -352,382 +393,767 @@
       <!-- MAIN CONTENT -->
       <main
         id="dashboardMain"
-        class="flex-1 overflow-y-auto custom-scroll p-4 lg:p-6 bg-slate-900"
+        class="flex-1 overflow-hidden flex flex-col bg-slate-900"
       >
-        <!-- ── KPI CARDS ── -->
-        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="users"
-                  class="w-4.5 h-4.5 text-blue-400"
-                  style="width: 18px; height: 18px"
-                ></i>
-              </div>
-              <span
-                id="kpiVisitorTrend"
-                class="text-[10px] text-emerald-400 font-medium"
-              ></span>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiTotalSessions"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">การเข้าใช้งานทั้งหมด</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="calendar-check"
-                  style="width: 18px; height: 18px"
-                  class="text-emerald-400"
-                ></i>
-              </div>
-              <span class="text-[10px] text-gray-500 font-medium">วันนี้</span>
-            </div>
-            <p class="text-2xl font-bold text-white font-heading" id="kpiToday">
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">ครั้งที่เข้าใช้วันนี้</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="repeat-2"
-                  style="width: 18px; height: 18px"
-                  class="text-purple-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiReturning"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">ผู้ใช้ที่กลับมาใช้ซ้ำ</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="timer"
-                  style="width: 18px; height: 18px"
-                  class="text-amber-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiAvgDuration"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">เวลาใช้งานเฉลี่ย (นาที)</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="mouse-pointer-click"
-                  style="width: 18px; height: 18px"
-                  class="text-cyan-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiTotalEvents"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">การกระทำทั้งหมด (events)</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-rose-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="search"
-                  style="width: 18px; height: 18px"
-                  class="text-rose-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiSearches"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">การค้นหาโครงการ</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-teal-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="folder-open"
-                  style="width: 18px; height: 18px"
-                  class="text-teal-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiProjectClicks"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">คลิกดูโครงการ</p>
-          </div>
-
-          <div
-            class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div
-                class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center"
-              >
-                <i
-                  data-lucide="clock-4"
-                  style="width: 18px; height: 18px"
-                  class="text-indigo-400"
-                ></i>
-              </div>
-            </div>
-            <p
-              class="text-2xl font-bold text-white font-heading"
-              id="kpiPeakHour"
-            >
-              —
-            </p>
-            <p class="text-xs text-gray-400 mt-0.5">ชั่วโมงที่ใช้งานมากสุด</p>
-          </div>
-        </section>
-
-        <!-- ── CHARTS ROW 1 ── -->
-        <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-          <!-- Daily sessions bar chart (spans 2 cols) -->
-          <div
-            class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-4"
-          >
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  การเข้าใช้งานรายวัน
-                </h2>
-                <p class="text-[11px] text-gray-500">30 วันล่าสุด</p>
-              </div>
-              <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
-            </div>
-            <div class="h-48">
-              <canvas id="chartDaily"></canvas>
-            </div>
-          </div>
-
-          <!-- Device / Browser doughnut -->
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  อุปกรณ์ที่ใช้
-                </h2>
-                <p class="text-[11px] text-gray-500">Device type</p>
-              </div>
-              <i
-                data-lucide="monitor-smartphone"
-                class="w-4 h-4 text-purple-400"
-              ></i>
-            </div>
-            <div class="h-36 flex items-center justify-center">
-              <canvas id="chartDevice"></canvas>
-            </div>
-            <div id="deviceLegend" class="mt-3 space-y-1"></div>
-          </div>
-        </section>
-
-        <!-- ── CHARTS ROW 2 ── -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <!-- Hourly usage line chart -->
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  ช่วงเวลาที่นิยมใช้งาน
-                </h2>
-                <p class="text-[11px] text-gray-500">
-                  การเข้าใช้แบ่งตามชั่วโมง
-                </p>
-              </div>
-              <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
-            </div>
-            <div class="h-44">
-              <canvas id="chartHourly"></canvas>
-            </div>
-          </div>
-
-          <!-- Browser breakdown -->
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  เบราว์เซอร์ที่ใช้
-                </h2>
-                <p class="text-[11px] text-gray-500">Browser breakdown</p>
-              </div>
-              <i data-lucide="globe" class="w-4 h-4 text-teal-400"></i>
-            </div>
-            <div class="h-44">
-              <canvas id="chartBrowser"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <!-- ── FEATURE USAGE TABLE ── -->
-        <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  ฟีเจอร์ที่ใช้บ่อยที่สุด
-                </h2>
-                <p class="text-[11px] text-gray-500">
-                  จำนวนครั้งที่ใช้งานเครื่องมือต่าง ๆ
-                </p>
-              </div>
-              <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
-            </div>
-            <div class="space-y-2" id="featureTable">
-              <!-- populated by JS -->
-            </div>
-          </div>
-
-          <!-- Referrer / traffic source -->
-          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
-            <div class="flex items-center justify-between mb-4">
-              <div>
-                <h2 class="font-heading text-sm font-semibold text-white">
-                  แหล่งที่มาของผู้เข้าชม
-                </h2>
-                <p class="text-[11px] text-gray-500">Traffic source</p>
-              </div>
-              <i data-lucide="link" class="w-4 h-4 text-rose-400"></i>
-            </div>
-            <div class="space-y-2" id="referrerTable">
-              <!-- populated by JS -->
-            </div>
-          </div>
-        </section>
-
-        <!-- ── RECENT SESSIONS TABLE ── -->
-        <section
-          class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-4"
+        <!-- ── TAB NAVIGATION ── -->
+        <div
+          class="flex-shrink-0 border-b border-slate-700 bg-slate-900 px-4 lg:px-6 flex gap-1 pt-2 overflow-x-auto"
         >
-          <div class="flex items-center justify-between mb-4">
+          <button
+            id="tabSummaryBtn"
+            onclick="switchDashTab('summary')"
+            class="dash-tab-btn active-tab flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg"
+          >
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            สรุปผลโครงการ
+          </button>
+          <button
+            id="tabAnalyticsBtn"
+            onclick="switchDashTab('analytics')"
+            class="dash-tab-btn flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg"
+          >
+            <i data-lucide="activity" class="w-4 h-4"></i>
+            วิเคราะห์การใช้งาน
+          </button>
+        </div>
+
+        <!-- ══ TAB 1: PROJECT SUMMARY ══ -->
+        <div
+          id="tabSummary"
+          class="flex-1 overflow-y-auto custom-scroll p-4 lg:p-6"
+        >
+          <!-- Filter Bar -->
+          <div
+            class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-5 flex flex-wrap gap-3 items-end"
+          >
             <div>
-              <h2 class="font-heading text-sm font-semibold text-white">
-                รายการเข้าใช้งานล่าสุด
-              </h2>
-              <p class="text-[11px] text-gray-500">20 รายการล่าสุด</p>
+              <label class="block text-xs text-gray-400 mb-1.5"
+                ><i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i
+                >ปีงบประมาณ</label
+              >
+              <select
+                id="sumYear"
+                onchange="loadSummary()"
+                class="bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[110px]"
+              >
+                <option value="">ทุกปี</option>
+                <option value="2569" selected>2569</option>
+                <option value="2568">2568</option>
+                <option value="2567">2567</option>
+                <option value="2566">2566</option>
+              </select>
             </div>
-            <i data-lucide="list" class="w-4 h-4 text-gray-400"></i>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5"
+                ><i data-lucide="map-pin" class="w-3 h-3 inline mr-1"></i
+                >อำเภอ</label
+              >
+              <select
+                id="sumDistrict"
+                onchange="filterSummary()"
+                class="bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[130px]"
+              >
+                <option value="">ทุกอำเภอ</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5"
+                ><i data-lucide="layers" class="w-3 h-3 inline mr-1"></i
+                >ประเภทงาน</label
+              >
+              <select
+                id="sumType"
+                onchange="filterSummary()"
+                class="bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[140px]"
+              >
+                <option value="">ทุกประเภท</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-400 mb-1.5"
+                ><i data-lucide="badge-check" class="w-3 h-3 inline mr-1"></i
+                >สถานะ</label
+              >
+              <select
+                id="sumStatus"
+                onchange="filterSummary()"
+                class="bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer min-w-[150px]"
+              >
+                <option value="">ทุกสถานะ</option>
+                <option>รอดำเนินการ</option>
+                <option>กำลังดำเนินการ</option>
+                <option>แล้วเสร็จ</option>
+                <option>ยกเลิก</option>
+                <option>ระงับชั่วคราว</option>
+              </select>
+            </div>
+            <div class="flex-1 min-w-[160px]">
+              <label class="block text-xs text-gray-400 mb-1.5"
+                ><i data-lucide="search" class="w-3 h-3 inline mr-1"></i
+                >ค้นหา</label
+              >
+              <input
+                id="sumSearch"
+                type="text"
+                placeholder="ชื่อโครงการ, ตำบล..."
+                oninput="filterSummary()"
+                class="w-full bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div class="flex gap-2">
+              <button
+                onclick="loadSummary()"
+                class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-xl transition-colors"
+              >
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                โหลด
+              </button>
+              <button
+                onclick="exportSummaryCSV()"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-300 text-sm rounded-xl transition-colors border border-slate-600"
+              >
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV
+              </button>
+            </div>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
-              <thead>
-                <tr class="border-b border-slate-700">
-                  <th class="pb-2 text-gray-400 font-medium pr-4">
-                    วันที่/เวลา
-                  </th>
-                  <th class="pb-2 text-gray-400 font-medium pr-4">อุปกรณ์</th>
-                  <th class="pb-2 text-gray-400 font-medium pr-4">
-                    เบราว์เซอร์
-                  </th>
-                  <th class="pb-2 text-gray-400 font-medium pr-4">หน้าจอ</th>
-                  <th class="pb-2 text-gray-400 font-medium pr-4">
-                    แหล่งที่มา
-                  </th>
-                  <th class="pb-2 text-gray-400 font-medium pr-4">
-                    เวลาใช้งาน
-                  </th>
-                  <th class="pb-2 text-gray-400 font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="sessionTable" class="divide-y divide-slate-700/50">
-                <!-- populated by JS -->
-              </tbody>
-            </table>
+
+          <!-- Loading / Error -->
+          <div
+            id="sumLoading"
+            class="hidden flex items-center justify-center py-16 gap-3 text-gray-400"
+          >
+            <div
+              class="spinner"
+              style="width: 24px; height: 24px; border-width: 3px"
+            ></div>
+            <span class="text-sm"
+              >กำลังโหลดข้อมูลโครงการ...</span
+            >
           </div>
-        </section>
+          <div
+            id="sumError"
+            class="hidden bg-red-900/30 border border-red-800/50 rounded-2xl p-6 mb-5 text-center"
+          >
+            <i
+              data-lucide="alert-circle"
+              class="w-8 h-8 text-red-400 mx-auto mb-2"
+            ></i>
+            <p class="text-sm text-red-300" id="sumErrorMsg">
+              โหลดข้อมูลไม่สำเร็จ
+            </p>
+            <button
+              onclick="loadSummary()"
+              class="mt-3 px-4 py-1.5 text-xs bg-red-800 hover:bg-red-700 text-white rounded-lg transition-colors"
+            >
+              ลองใหม่
+            </button>
+          </div>
 
-        <!-- ── ACTIONS ── -->
-        <section class="flex flex-wrap gap-3 mb-6">
-          <button
-            id="exportCsvBtn"
-            class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-xl transition-colors"
-          >
-            <i data-lucide="download" class="w-4 h-4"></i>
-            ส่งออกข้อมูล CSV
-          </button>
-          <button
-            id="clearDataBtn"
-            class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-red-900/60 text-gray-300 hover:text-red-300 text-sm rounded-xl transition-colors border border-slate-600 hover:border-red-800/50"
-          >
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-            ล้างข้อมูล Analytics
-          </button>
-          <a
-            href="index.html"
-            class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white text-sm rounded-xl transition-colors border border-slate-600"
-          >
-            <i data-lucide="map-pin" class="w-4 h-4"></i>
-            กลับไปยังแผนที่
-          </a>
-        </section>
+          <!-- KPI Cards -->
+          <div
+            id="sumKpis"
+            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5"
+          ></div>
 
-        <!-- Footer note -->
-        <p class="text-[11px] text-gray-600 text-center pb-4">
-          ข้อมูลถูกเก็บเฉพาะบนเบราว์เซอร์นี้ (localStorage) ·
-          สำหรับสถิติข้ามอุปกรณ์ โปรดเชื่อมต่อ Google Analytics
-        </p>
+          <!-- Charts Row 1 -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <!-- Status doughnut -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="pie-chart"
+                    class="w-3.5 h-3.5 text-blue-400"
+                  ></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    สถานะโครงการ
+                  </h2>
+                  <p class="text-[10px] text-gray-500">
+                    สัดส่วนตามสถานะ
+                  </p>
+                </div>
+              </div>
+              <div style="height: 140px">
+                <canvas id="sumChartStatus"></canvas>
+              </div>
+              <div id="sumStatusLegend" class="mt-3 space-y-1.5"></div>
+            </div>
+
+            <!-- Type bar -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="layers"
+                    class="w-3.5 h-3.5 text-emerald-400"
+                  ></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    ประเภทงาน
+                  </h2>
+                  <p class="text-[10px] text-gray-500">
+                    จำนวนโครงการแต่ละประเภท
+                  </p>
+                </div>
+              </div>
+              <div style="height: 200px">
+                <canvas id="sumChartType"></canvas>
+              </div>
+            </div>
+
+            <!-- District bar -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="map-pin"
+                    class="w-3.5 h-3.5 text-amber-400"
+                  ></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    โครงการรายอำเภอ
+                  </h2>
+                  <p class="text-[10px] text-gray-500">
+                    10 อำเภอสูงสุด
+                  </p>
+                </div>
+              </div>
+              <div style="height: 200px">
+                <canvas id="sumChartDistrict"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Budget bar -->
+          <div
+            class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-5"
+          >
+            <div class="flex items-center gap-2 mb-4">
+              <div
+                class="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center"
+              >
+                <i data-lucide="coins" class="w-3.5 h-3.5 text-violet-400"></i>
+              </div>
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  งบประมาณตามประเภทงาน
+                  (ล้านบาท)
+                </h2>
+                <p class="text-[10px] text-gray-500">
+                  วงเงินรวมแต่ละประเภท
+                </p>
+              </div>
+            </div>
+            <div style="height: 200px">
+              <canvas id="sumChartBudget"></canvas>
+            </div>
+          </div>
+
+          <!-- Project Table -->
+          <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div
+                  class="w-7 h-7 rounded-lg bg-slate-600 flex items-center justify-center"
+                >
+                  <i data-lucide="table" class="w-3.5 h-3.5 text-gray-300"></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    รายการโครงการ
+                  </h2>
+                  <p class="text-[10px] text-gray-500" id="sumTableCount">
+                    —
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left" style="min-width: 900px">
+                <thead class="bg-slate-700 text-gray-300">
+                  <tr>
+                    <th class="px-3 py-2 font-medium w-10 text-center">
+                      ที่
+                    </th>
+                    <th class="px-3 py-2 font-medium min-w-[200px]">
+                      ชื่อโครงการ
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      ตำบล / อำเภอ
+                    </th>
+                    <th class="px-3 py-2 font-medium">
+                      ประเภทงาน
+                    </th>
+                    <th class="px-3 py-2 font-medium text-right">
+                      งบประมาณ (บาท)
+                    </th>
+                    <th class="px-3 py-2 font-medium">แหล่งงบ</th>
+                    <th class="px-3 py-2 font-medium text-center">
+                      สถานะ
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="sumTable"
+                  class="divide-y divide-slate-700/50 text-gray-300"
+                >
+                  <tr>
+                    <td colspan="7" class="py-12 text-center text-gray-500">
+                      กดปุ่ม "โหลด"
+                      เพื่อดูรายงาน
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="sumPagination" class="mt-4 flex justify-center"></div>
+          </div>
+        </div>
+        <!-- /tabSummary -->
+
+        <!-- ══ TAB 2: ANALYTICS ══ -->
+        <div
+          id="tabAnalytics"
+          class="hidden flex-1 overflow-y-auto custom-scroll p-4 lg:p-6"
+        >
+          <!-- ── KPI CARDS ── -->
+          <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-blue-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="users"
+                    style="width: 18px; height: 18px"
+                    class="text-blue-400"
+                  ></i>
+                </div>
+                <span
+                  id="kpiVisitorTrend"
+                  class="text-[10px] text-emerald-400 font-medium"
+                ></span>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiTotalSessions"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                การเข้าใช้งานทั้งหมด
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="calendar-check"
+                    style="width: 18px; height: 18px"
+                    class="text-emerald-400"
+                  ></i>
+                </div>
+                <span class="text-[10px] text-gray-500 font-medium"
+                  >วันนี้</span
+                >
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiToday"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                ครั้งที่เข้าใช้วันนี้
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-purple-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="repeat-2"
+                    style="width: 18px; height: 18px"
+                    class="text-purple-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiReturning"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                ผู้ใช้ที่กลับมาใช้ซ้ำ
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="timer"
+                    style="width: 18px; height: 18px"
+                    class="text-amber-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiAvgDuration"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                เวลาใช้งานเฉลี่ย (นาที)
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-cyan-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="mouse-pointer-click"
+                    style="width: 18px; height: 18px"
+                    class="text-cyan-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiTotalEvents"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                การกระทำทั้งหมด (events)
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-rose-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="search"
+                    style="width: 18px; height: 18px"
+                    class="text-rose-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiSearches"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                การค้นหาโครงการ
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-teal-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="folder-open"
+                    style="width: 18px; height: 18px"
+                    class="text-teal-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiProjectClicks"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                คลิกดูโครงการ
+              </p>
+            </div>
+            <div
+              class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="mb-3">
+                <div
+                  class="w-9 h-9 rounded-xl bg-indigo-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="clock-4"
+                    style="width: 18px; height: 18px"
+                    class="text-indigo-400"
+                  ></i>
+                </div>
+              </div>
+              <p
+                class="text-2xl font-bold text-white font-heading"
+                id="kpiPeakHour"
+              >
+                —
+              </p>
+              <p class="text-xs text-gray-400 mt-0.5">
+                ชั่วโมงที่ใช้งานมากสุด
+              </p>
+            </div>
+          </section>
+
+          <!-- ── CHARTS ROW 1 ── -->
+          <section class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <!-- Daily bar (2 cols) -->
+            <div
+              class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-4"
+            >
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center"
+                  >
+                    <i
+                      data-lucide="trending-up"
+                      class="w-3.5 h-3.5 text-blue-400"
+                    ></i>
+                  </div>
+                  <div>
+                    <h2 class="font-heading text-sm font-semibold text-white">
+                      การเข้าใช้งานรายวัน
+                    </h2>
+                    <p class="text-[11px] text-gray-500">
+                      30 วันล่าสุด
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="h-48">
+                <canvas id="chartDaily"></canvas>
+              </div>
+            </div>
+
+            <!-- Device doughnut -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center"
+                >
+                  <i
+                    data-lucide="monitor-smartphone"
+                    class="w-3.5 h-3.5 text-purple-400"
+                  ></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    อุปกรณ์ที่ใช้
+                  </h2>
+                  <p class="text-[11px] text-gray-500">Device type</p>
+                </div>
+              </div>
+              <div style="height: 130px">
+                <canvas id="chartDevice"></canvas>
+              </div>
+              <div id="deviceLegend" class="mt-3 space-y-1"></div>
+            </div>
+          </section>
+
+          <!-- ── CHARTS ROW 2 ── -->
+          <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <!-- Hourly line -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center"
+                >
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    ช่วงเวลาที่นิยมใช้งาน
+                  </h2>
+                  <p class="text-[11px] text-gray-500">
+                    การเข้าใช้แบ่งตามชั่วโมง
+                  </p>
+                </div>
+              </div>
+              <div class="h-44">
+                <canvas id="chartHourly"></canvas>
+              </div>
+            </div>
+
+            <!-- Browser bar -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-teal-500/20 flex items-center justify-center"
+                >
+                  <i data-lucide="globe" class="w-3.5 h-3.5 text-teal-400"></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    เบราว์เซอร์ที่ใช้
+                  </h2>
+                  <p class="text-[11px] text-gray-500">Browser breakdown</p>
+                </div>
+              </div>
+              <div class="h-44">
+                <canvas id="chartBrowser"></canvas>
+              </div>
+            </div>
+          </section>
+
+          <!-- ── FEATURE & REFERRER ── -->
+          <section class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center"
+                >
+                  <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    ฟีเจอร์ที่ใช้บ่อยที่สุด
+                  </h2>
+                  <p class="text-[11px] text-gray-500">
+                    จำนวนครั้งที่ใช้งานเครื่องมือต่าง
+                    ๆ
+                  </p>
+                </div>
+              </div>
+              <div class="space-y-2" id="featureTable"></div>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <div
+                  class="w-7 h-7 rounded-lg bg-rose-500/20 flex items-center justify-center"
+                >
+                  <i data-lucide="link" class="w-3.5 h-3.5 text-rose-400"></i>
+                </div>
+                <div>
+                  <h2 class="font-heading text-sm font-semibold text-white">
+                    แหล่งที่มาของผู้เข้าชม
+                  </h2>
+                  <p class="text-[11px] text-gray-500">Traffic source</p>
+                </div>
+              </div>
+              <div class="space-y-2" id="referrerTable"></div>
+            </div>
+          </section>
+
+          <!-- ── RECENT SESSIONS ── -->
+          <section
+            class="bg-slate-800 border border-slate-700 rounded-2xl p-4 mb-4"
+          >
+            <div class="flex items-center gap-2 mb-4">
+              <div
+                class="w-7 h-7 rounded-lg bg-slate-600 flex items-center justify-center"
+              >
+                <i data-lucide="list" class="w-3.5 h-3.5 text-gray-300"></i>
+              </div>
+              <div>
+                <h2 class="font-heading text-sm font-semibold text-white">
+                  รายการเข้าใช้งานล่าสุด
+                </h2>
+                <p class="text-[11px] text-gray-500">
+                  20 รายการล่าสุด
+                </p>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead>
+                  <tr class="border-b border-slate-700">
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      วันที่/เวลา
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      อุปกรณ์
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      เบราว์เซอร์
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      หน้าจอ
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      แหล่งที่มา
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">
+                      เวลาใช้งาน
+                    </th>
+                    <th class="pb-2 text-gray-400 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="sessionTable"
+                  class="divide-y divide-slate-700/50"
+                ></tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ── ACTIONS ── -->
+          <section class="flex flex-wrap gap-3 mb-6">
+            <button
+              id="exportCsvBtn"
+              class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-xl transition-colors"
+            >
+              <i data-lucide="download" class="w-4 h-4"></i>
+              ส่งออกข้อมูล CSV
+            </button>
+            <button
+              id="clearDataBtn"
+              class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-red-900/60 text-gray-300 hover:text-red-300 text-sm rounded-xl transition-colors border border-slate-600 hover:border-red-800/50"
+            >
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              ล้างข้อมูล Analytics
+            </button>
+            <a
+              href="index.html"
+              class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white text-sm rounded-xl transition-colors border border-slate-600"
+            >
+              <i data-lucide="map-pin" class="w-4 h-4"></i>
+              กลับไปยังแผนที่
+            </a>
+          </section>
+
+          <p class="text-[11px] text-gray-600 text-center pb-4">
+            ข้อมูลถูกเก็บเฉพาะบนเบราว์เซอร์นี้
+            (localStorage) ·
+            สำหรับสถิติข้ามอุปกรณ์
+            โปรดเชื่อมต่อ Google Analytics
+          </p>
+        </div>
+        <!-- /tabAnalytics -->
       </main>
     </div>
 
