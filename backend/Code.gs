@@ -91,6 +91,12 @@ function doPost(e) {
         return handleGetProjects(params, session);
       case "getUsers":
         return handleGetUsers(params, session);
+      case "addUser":
+        return handleAddUser(params, session);
+      case "updateUser":
+        return handleUpdateUser(params, session);
+      case "deleteUser":
+        return handleDeleteUser(params, session);
       default:
         return error_("Unknown action: " + action);
     }
@@ -565,6 +571,97 @@ function handleGetUsers(params, session) {
     };
   });
   return ok_({ users: users });
+}
+
+function handleAddUser(params, session) {
+  requireRole_(session, ["admin"]);
+
+  var username = sanitize((params.username || "").toLowerCase().trim());
+  var password = sanitize(params.password || "");
+  var role     = sanitize((params.role || "").toLowerCase().trim());
+
+  if (!username) return error_("กรุณาระบุชื่อผู้ใช้");
+  if (!/^[a-z0-9._-]{3,30}$/.test(username))
+    return error_("ชื่อผู้ใช้ต้องเป็นตัวอักษร a-z, 0-9, . _ - และมีความยาว 3-30 ตัวอักษร");
+  if (!password || password.length < 6)
+    return error_("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+  if (["admin", "director", "user", "approve"].indexOf(role) === -1)
+    return error_("บทบาทไม่ถูกต้อง");
+
+  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var sheet = ss.getSheets()[0];
+  var data  = sheet.getDataRange().getValues();
+
+  // ตรวจสอบชื่อผู้ใช้ซ้ำ
+  for (var i = 1; i < data.length; i++) {
+    if ((data[i][1] || "").toString().trim().toLowerCase() === username) {
+      return error_("ชื่อผู้ใช้ " + username + " มีในระบบแล้ว");
+    }
+  }
+
+  var newId   = data.length; // id = จำนวนแถวทั้งหมด (header + data)
+  var passHash = sha256Hex(password);
+  sheet.appendRow([newId, username, passHash, role]);
+  logAudit_(session.username, "addUser", { username: username, role: role });
+  return ok_({ message: "เพิ่มผู้ใช้ " + username + " สำเร็จ", id: newId });
+}
+
+function handleUpdateUser(params, session) {
+  requireRole_(session, ["admin"]);
+
+  var userId   = parseInt(params.userId, 10);
+  var newRole  = sanitize((params.role || "").toLowerCase().trim());
+  var newPass  = sanitize(params.password || "");
+
+  if (isNaN(userId)) return error_("userId ไม่ถูกต้อง");
+  if (newRole && ["admin", "director", "user", "approve"].indexOf(newRole) === -1)
+    return error_("บทบาทไม่ถูกต้อง");
+  if (newPass && newPass.length < 6)
+    return error_("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
+
+  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var sheet = ss.getSheets()[0];
+  var data  = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (parseInt(data[i][0], 10) === userId) {
+      var targetUser = (data[i][1] || "").toString().trim();
+      // ห้าม admin แก้ role ตัวเอง
+      if (targetUser.toLowerCase() === session.username.toLowerCase() && newRole && newRole !== data[i][3]) {
+        return error_("ไม่สามารถเปลี่ยน Role ของตัวเองได้");
+      }
+      if (newRole)  sheet.getRange(i + 1, 4).setValue(newRole);
+      if (newPass)  sheet.getRange(i + 1, 3).setValue(sha256Hex(newPass));
+      logAudit_(session.username, "updateUser", { userId: userId, username: targetUser, role: newRole || "(ไม่เปลี่ยน)" });
+      return ok_({ message: "แก้ไขผู้ใช้สำเร็จ" });
+    }
+  }
+  return error_("ไม่พบผู้ใช้ ID: " + userId);
+}
+
+function handleDeleteUser(params, session) {
+  requireRole_(session, ["admin"]);
+
+  var userId = parseInt(params.userId, 10);
+  if (isNaN(userId)) return error_("userId ไม่ถูกต้อง");
+
+  var ss    = SpreadsheetApp.openById(AUTH_SHEET_ID);
+  var sheet = ss.getSheets()[0];
+  var data  = sheet.getDataRange().getValues();
+
+  for (var i = 1; i < data.length; i++) {
+    if (parseInt(data[i][0], 10) === userId) {
+      var targetUser = (data[i][1] || "").toString().trim();
+      // ห้ามลบบัญชีตัวเอง
+      if (targetUser.toLowerCase() === session.username.toLowerCase()) {
+        return error_("ไม่สามารถลบบัญชีของตัวเองได้");
+      }
+      sheet.deleteRow(i + 1);
+      logAudit_(session.username, "deleteUser", { userId: userId, username: targetUser });
+      return ok_({ message: "ลบผู้ใช้ " + targetUser + " สำเร็จ" });
+    }
+  }
+  return error_("ไม่พบผู้ใช้ ID: " + userId);
 }
 
 // ═══════════════════════════════════════════

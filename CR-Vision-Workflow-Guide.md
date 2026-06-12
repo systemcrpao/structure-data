@@ -32,7 +32,8 @@
 ### 3.1 👑 Admin (ผู้ดูแลระบบ)
 * **Landing Page:** `admin.html`
 * **สิทธิ์การเข้าถึง:** เข้าถึงได้ *ทุกฟังก์ชัน* ของระบบและสามารถ Bypass Rule ของ Role อื่นได้ทั้งหมด
-* **API Actions ที่ทำได้:** `addProject`, `importCSV`, `updateProject`, `deleteProject`, `updateStatus`, `getUsers`
+* **API Actions ที่ทำได้:** `addProject`, `importCSV`, `updateProject`, `deleteProject`, `updateStatus`, `getUsers`, `addUser`, `updateUser`, `deleteUser`
+* **การจัดการผู้ใช้:** หน้า `admin.html` มี UI แบบ CRUD สำหรับเพิ่ม/แก้ไข/ลบผู้ใช้ในระบบ พร้อม Modal Form และ Confirm Dialog (ไม่สามารถลบหรือเปลี่ยน Role ของตัวเองได้)
 
 ### 3.2 👨‍🔧 User (ช่างเทคนิค / ผู้ปฏิบัติงาน)
 * **Landing Page:** `technician.html`
@@ -56,6 +57,13 @@
 
 ---
 
+### 3.5 🗺️ หน้าแผนที่สาธารณะ (index.html)
+* เปิดให้ประชาชนเข้าดูได้โดยไม่ต้อง Login
+* **ปุ่มมุมล่างซ้าย:** แสดง "เข้าสู่ระบบ" สำหรับผู้ที่ยังไม่ Login → นำทางไปหน้า `login.html`
+* **เมื่อ Login แล้ว:** ปุ่มเดียวกันจะแสดงชื่อผู้ใช้ + บทบาท และเมื่อกด → นำทางไปยัง Landing Page ของ Role นั้นๆ โดยอัตโนมัติ (`getRoleHome`)
+
+---
+
 ## ⚙️ 4. กระบวนการทำงานของ Backend API (Code.gs)
 Backend ทำงานผ่านฟังก์ชัน `doPost(e)` โดยรับ Payload เป็น JSON (Content-Type: text/plain เพื่อเลี่ยง CORS)
 1.  **Parse Payload:** ตรวจสอบค่า `action`
@@ -63,6 +71,11 @@ Backend ทำงานผ่านฟังก์ชัน `doPost(e)` โด�
 3.  **Route Action:** ใช้ `switch(action)` โยนไปยัง Handler function ต่างๆ
 4.  **Authorization Check:** ภายใน Handler จะเรียกฟังก์ชัน `requireRole_(session, [...allowedRoles])` เพื่อเช็คสิทธิ์
 5.  **Audit Log:** ทุกครั้งที่มีการเพิ่ม ลบ หรือแก้ไขข้อมูล จะมีการบันทึกประวัติลงใน Sheet `_audit_log` โดยอัตโนมัติ (Best-effort)
+
+**User Management Actions (Admin only):**
+* `addUser`: เพิ่มผู้ใช้ใหม่ — ตรวจสอบชื่อซ้ำ, validate format, hash รหัสผ่านด้วย SHA-256 ก่อนบันทึก
+* `updateUser`: แก้ไข Role และ/หรือรหัสผ่านของผู้ใช้ตาม `userId` — ห้ามเปลี่ยน Role ตัวเอง
+* `deleteUser`: ลบผู้ใช้ตาม `userId` — ห้ามลบบัญชีตัวเอง
 
 ---
 

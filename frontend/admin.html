@@ -233,45 +233,48 @@
         </div>
       </section>
 
-      <!-- System Info -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <!-- User Management -->
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-4">
-            <h3
-              class="font-heading text-sm font-semibold text-white flex items-center gap-2"
-            >
-              <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
-              ผู้ใช้งานระบบ
-            </h3>
-            <button
-              onclick="loadUsers()"
-              class="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              โหลดใหม่
+      <!-- User Management (full-width) -->
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 mb-4">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-heading text-sm font-semibold text-white flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
+            จัดการผู้ใช้งานระบบ
+          </h3>
+          <div class="flex items-center gap-2">
+            <button onclick="loadUsers()" class="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors px-2.5 py-1.5 rounded-lg hover:bg-slate-700">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i> โหลดใหม่
+            </button>
+            <button onclick="openUserModal()" class="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> เพิ่มผู้ใช้
             </button>
           </div>
-
-          <!-- Loading -->
-          <div
-            id="userLoading"
-            class="flex items-center gap-2 text-gray-500 text-sm"
-          >
-            <div
-              class="spinner"
-              style="width: 18px; height: 18px; border-width: 2px"
-            ></div>
-            <span>กำลังโหลด...</span>
-          </div>
-
-          <!-- User list -->
-          <div
-            id="userList"
-            class="hidden divide-y divide-slate-700/50 -mx-1"
-          ></div>
         </div>
 
-        <!-- Security Info -->
+        <!-- Loading -->
+        <div id="userLoading" class="flex items-center gap-2 text-gray-500 text-sm py-4">
+          <div class="spinner" style="width:18px;height:18px;border-width:2px"></div>
+          <span>กำลังโหลด...</span>
+        </div>
+
+        <!-- Table -->
+        <div id="userTableWrap" class="hidden overflow-x-auto">
+          <table class="w-full text-sm text-left" style="min-width:520px">
+            <thead>
+              <tr class="border-b border-slate-700 text-xs text-gray-400">
+                <th class="pb-2 pr-3 font-medium w-8">ID</th>
+                <th class="pb-2 pr-3 font-medium">ชื่อผู้ใช้</th>
+                <th class="pb-2 pr-3 font-medium">บทบาท</th>
+                <th class="pb-2 font-medium text-right">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="userList" class="divide-y divide-slate-700/40"></tbody>
+          </table>
+        </div>
+        <p id="userError" class="hidden text-xs text-red-400 py-2"></p>
+      </div>
+
+      <!-- Security Info -->
+      <div class="mb-6">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
           <h3
             class="font-heading text-sm font-semibold text-white flex items-center gap-2 mb-4"
@@ -355,117 +358,283 @@
       </div>
     </main>
 
+    <!-- ── USER MODAL ──────────────────────────────────────── -->
+    <div id="userModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+          <h3 id="modalTitle" class="font-heading text-sm font-semibold text-white">เพิ่มผู้ใช้</h3>
+          <button onclick="closeUserModal()" class="text-gray-500 hover:text-white transition-colors">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="px-5 py-4 space-y-4">
+          <input type="hidden" id="modalUserId" value="" />
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">ชื่อผู้ใช้ <span class="text-red-400">*</span></label>
+            <input id="modalUsername" type="text" placeholder="a-z, 0-9, . _ - (3-30 ตัว)"
+              class="w-full bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">
+              รหัสผ่าน <span id="passHint" class="text-gray-500">(ต้องการอย่างน้อย 6 ตัวอักษร)</span>
+            </label>
+            <div class="relative">
+              <input id="modalPassword" type="password" placeholder="รหัสผ่านใหม่"
+                class="w-full bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500" />
+              <button type="button" onclick="toggleModalPass()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+                <i data-lucide="eye" id="modalPassEye" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-gray-400 mb-1.5">บทบาท <span class="text-red-400">*</span></label>
+            <select id="modalRole"
+              class="w-full bg-slate-700 border border-slate-600 rounded-xl text-sm text-white px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="user">ช่างเทคนิค (user)</option>
+              <option value="approve">การเงิน/คลัง (approve)</option>
+              <option value="director">ผู้อำนวยการ (director)</option>
+              <option value="admin">ผู้ดูแลระบบ (admin)</option>
+            </select>
+          </div>
+
+          <p id="modalError" class="hidden text-xs text-red-400 bg-red-900/30 border border-red-800/40 rounded-lg px-3 py-2"></p>
+        </div>
+        <div class="flex gap-2 px-5 py-4 border-t border-slate-700">
+          <button onclick="closeUserModal()" class="flex-1 px-4 py-2 text-sm text-gray-300 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors">ยกเลิก</button>
+          <button id="modalSaveBtn" onclick="saveUser()" class="flex-1 px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-500 rounded-xl transition-colors flex items-center justify-center gap-2">
+            <span id="modalSaveText">บันทึก</span>
+            <div id="modalSpinner" class="hidden spinner" style="width:14px;height:14px;border-width:2px"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONFIRM DELETE MODAL ──────────────────────────── -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-xs p-5 text-center">
+        <div class="w-12 h-12 rounded-full bg-red-900/40 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="trash-2" class="w-5 h-5 text-red-400"></i>
+        </div>
+        <h3 class="font-heading text-sm font-semibold text-white mb-1">ยืนยันการลบ</h3>
+        <p class="text-xs text-gray-400 mb-4">ลบผู้ใช้ "<span id="confirmUsername" class="text-white font-medium"></span>" ออกจากระบบ?<br>การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+        <div class="flex gap-2">
+          <button onclick="closeConfirm()" class="flex-1 px-4 py-2 text-sm text-gray-300 bg-slate-700 hover:bg-slate-600 rounded-xl transition-colors">ยกเลิก</button>
+          <button id="confirmDeleteBtn" class="flex-1 px-4 py-2 text-sm text-white bg-red-700 hover:bg-red-600 rounded-xl transition-colors flex items-center justify-center gap-2">
+            <span>ลบ</span>
+            <div id="confirmSpinner" class="hidden spinner" style="width:14px;height:14px;border-width:2px"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script>
       var session = window.CRAuth.getSession();
 
-      // ── User label ────────────────────────────────────────
+      // ── UI Init ────────────────────────────────────────────
       if (session) {
-        document.getElementById("userLabel").textContent =
-          session.displayRole || window.CRAuth.getRoleLabel(session.role);
-        document.getElementById("adminName").textContent =
-          session.user || "Admin";
-
-        // Session info
+        document.getElementById("userLabel").textContent = session.displayRole || window.CRAuth.getRoleLabel(session.role);
+        document.getElementById("adminName").textContent = session.user || "Admin";
         document.getElementById("sessUser").textContent = session.user || "—";
-        document.getElementById("sessRole").textContent =
-          session.displayRole || session.role;
+        document.getElementById("sessRole").textContent = session.displayRole || session.role;
         var expTime = new Date(session.expires);
-        document.getElementById("sessExpiry").textContent =
-          expTime.toLocaleTimeString("th-TH", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
+        document.getElementById("sessExpiry").textContent = expTime.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
       }
 
       var gasUrl = window.GAS_WEBAPP_URL || "";
-      var gasShort = gasUrl.includes("REPLACE_WITH")
-        ? "⚠️ ยังไม่ตั้งค่า"
-        : gasUrl
-            .replace("https://script.google.com/macros/s/", "…/")
-            .substring(0, 30) + "…";
+      var gasShort = gasUrl.includes("REPLACE_WITH") ? "⚠️ ยังไม่ตั้งค่า"
+        : gasUrl.replace("https://script.google.com/macros/s/", "…/").substring(0, 30) + "…";
       document.getElementById("sessGas").textContent = gasShort;
-      document.getElementById("sessGas").className =
-        "font-semibold text-xs truncate " +
-        (gasUrl.includes("REPLACE_WITH") ? "text-red-400" : "text-emerald-400");
-
-      document
-        .getElementById("logoutBtn")
-        .addEventListener("click", function () {
-          window.CRAuth.logout();
-        });
+      document.getElementById("sessGas").className = "font-semibold text-xs truncate " + (gasUrl.includes("REPLACE_WITH") ? "text-red-400" : "text-emerald-400");
+      document.getElementById("logoutBtn").addEventListener("click", function () { window.CRAuth.logout(); });
 
       lucide.createIcons();
 
-      // ── Load users ────────────────────────────────────────
-      var ROLE_BADGE = {
-        admin: "badge-admin",
-        director: "badge-director",
-        user: "badge-user",
-        approve: "badge-approve",
-      };
-      var ROLE_DISPLAY = {
-        admin: "ผู้ดูแลระบบ",
-        director: "ผู้อำนวยการ",
-        user: "ช่างเทคนิค",
-        approve: "การเงิน/คลัง",
-      };
+      // ── Helpers ────────────────────────────────────────────
+      var ROLE_BADGE   = { admin:"badge-admin", director:"badge-director", user:"badge-user", approve:"badge-approve" };
+      var ROLE_DISPLAY = { admin:"ผู้ดูแลระบบ", director:"ผู้อำนวยการ", user:"ช่างเทคนิค", approve:"การเงิน/คลัง" };
+
+      function escHtml(str) {
+        return (str||"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+      }
+
+      // ── Load users ─────────────────────────────────────────
+      var _users = [];
 
       async function loadUsers() {
         document.getElementById("userLoading").classList.remove("hidden");
-        document.getElementById("userList").classList.add("hidden");
+        document.getElementById("userTableWrap").classList.add("hidden");
+        document.getElementById("userError").classList.add("hidden");
         try {
-          var res = await window.CRAuth.callGAS({
-            action: "getUsers",
-            token: session ? session.token : "",
-          });
+          var res = await window.CRAuth.callGAS({ action: "getUsers", token: session ? session.token : "" });
           if (!res.success) throw new Error(res.error);
-          var users = res.users || [];
-          var list = document.getElementById("userList");
-          list.innerHTML = users
-            .map(function (u) {
-              var role = (u.role || "").toLowerCase();
-              var badge = ROLE_BADGE[role] || "badge-user";
-              var roleLbl = ROLE_DISPLAY[role] || role;
-              return (
-                '<div class="flex items-center justify-between px-1 py-2.5">' +
-                '<div class="flex items-center gap-2.5">' +
-                '<div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center">' +
-                '<i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i>' +
-                "</div>" +
-                '<span class="text-sm text-gray-200">' +
-                escHtml(u.username) +
-                "</span>" +
-                "</div>" +
-                '<span class="role-badge ' +
-                badge +
-                '">' +
-                escHtml(roleLbl) +
-                "</span>" +
-                "</div>"
-              );
-            })
-            .join("");
-          list.classList.remove("hidden");
-          lucide.createIcons({ nodes: [list] });
+          _users = res.users || [];
+          renderUserTable(_users);
+          document.getElementById("userTableWrap").classList.remove("hidden");
         } catch (err) {
-          document.getElementById("userList").innerHTML =
-            '<p class="text-xs text-red-400 px-1 py-2">โหลดไม่สำเร็จ: ' +
-            escHtml(err.message) +
-            "</p>";
-          document.getElementById("userList").classList.remove("hidden");
+          var errEl = document.getElementById("userError");
+          errEl.textContent = "โหลดไม่สำเร็จ: " + err.message;
+          errEl.classList.remove("hidden");
         } finally {
           document.getElementById("userLoading").classList.add("hidden");
         }
       }
 
-      function escHtml(str) {
-        return (str || "")
-          .toString()
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
+      function renderUserTable(users) {
+        var tbody = document.getElementById("userList");
+        if (!users.length) {
+          tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-500 text-xs">ยังไม่มีผู้ใช้ในระบบ</td></tr>';
+          return;
+        }
+        tbody.innerHTML = users.map(function (u) {
+          var role = (u.role || "").toLowerCase();
+          var badge = ROLE_BADGE[role] || "badge-user";
+          var roleLbl = ROLE_DISPLAY[role] || role;
+          var isSelf = session && u.username === session.user;
+          return '<tr class="hover:bg-slate-700/30 transition-colors">'
+            + '<td class="py-2.5 pr-3 text-xs text-gray-500">' + escHtml(u.id) + '</td>'
+            + '<td class="py-2.5 pr-3">'
+            +   '<div class="flex items-center gap-2">'
+            +     '<div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center flex-shrink-0">'
+            +       '<i data-lucide="user" class="w-3.5 h-3.5 text-gray-400"></i>'
+            +     '</div>'
+            +     '<span class="text-sm text-gray-200">' + escHtml(u.username) + '</span>'
+            +     (isSelf ? '<span class="text-[10px] text-blue-400 ml-1">(คุณ)</span>' : '')
+            +   '</div>'
+            + '</td>'
+            + '<td class="py-2.5 pr-3"><span class="role-badge ' + badge + '">' + escHtml(roleLbl) + '</span></td>'
+            + '<td class="py-2.5 text-right">'
+            +   '<div class="flex items-center justify-end gap-1.5">'
+            +     '<button onclick="editUser(' + u.id + ')" title="แก้ไข" class="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-slate-600 transition-colors"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>'
+            +     (!isSelf ? '<button onclick="confirmDelete(' + u.id + ',\'' + escHtml(u.username) + '\')" title="ลบ" class="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-900/40 transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>' : '')
+            +   '</div>'
+            + '</td>'
+            + '</tr>';
+        }).join("");
+        lucide.createIcons({ nodes: [tbody] });
       }
+
+      // ── Add / Edit Modal ──────────────────────────────────
+      var _editId = null;
+
+      function openUserModal(editMode) {
+        _editId = null;
+        document.getElementById("modalTitle").textContent = "เพิ่มผู้ใช้";
+        document.getElementById("modalUserId").value = "";
+        document.getElementById("modalUsername").value = "";
+        document.getElementById("modalUsername").disabled = false;
+        document.getElementById("modalPassword").value = "";
+        document.getElementById("modalRole").value = "user";
+        document.getElementById("modalError").classList.add("hidden");
+        document.getElementById("passHint").textContent = "(ต้องการอย่างน้อย 6 ตัวอักษร)";
+        document.getElementById("userModal").classList.remove("hidden");
+      }
+
+      function editUser(userId) {
+        var u = _users.find(function(x){ return x.id == userId; });
+        if (!u) return;
+        _editId = userId;
+        document.getElementById("modalTitle").textContent = "แก้ไขผู้ใช้: " + u.username;
+        document.getElementById("modalUserId").value = userId;
+        document.getElementById("modalUsername").value = u.username;
+        document.getElementById("modalUsername").disabled = true;
+        document.getElementById("modalPassword").value = "";
+        document.getElementById("modalRole").value = (u.role || "user").toLowerCase();
+        document.getElementById("modalError").classList.add("hidden");
+        document.getElementById("passHint").textContent = "(เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน)";
+        document.getElementById("userModal").classList.remove("hidden");
+      }
+
+      function closeUserModal() {
+        document.getElementById("userModal").classList.add("hidden");
+      }
+
+      function toggleModalPass() {
+        var inp = document.getElementById("modalPassword");
+        var eye = document.getElementById("modalPassEye");
+        if (inp.type === "password") { inp.type = "text"; eye.setAttribute("data-lucide","eye-off"); }
+        else { inp.type = "password"; eye.setAttribute("data-lucide","eye"); }
+        lucide.createIcons({ nodes: [eye.parentElement] });
+      }
+
+      async function saveUser() {
+        var username = document.getElementById("modalUsername").value.trim();
+        var password = document.getElementById("modalPassword").value;
+        var role     = document.getElementById("modalRole").value;
+        var errEl    = document.getElementById("modalError");
+        errEl.classList.add("hidden");
+
+        var isEdit = !!_editId;
+        var payload = { token: session ? session.token : "", role: role };
+        if (!isEdit) {
+          if (!username) { showModalErr("กรุณากรอกชื่อผู้ใช้"); return; }
+          if (!password) { showModalErr("กรุณากรอกรหัสผ่าน"); return; }
+          payload.action = "addUser"; payload.username = username; payload.password = password;
+        } else {
+          payload.action = "updateUser"; payload.userId = _editId;
+          if (password) payload.password = password;
+        }
+
+        setBusy(true);
+        try {
+          var res = await window.CRAuth.callGAS(payload);
+          if (!res.success) throw new Error(res.error);
+          closeUserModal();
+          loadUsers();
+        } catch (err) {
+          showModalErr(err.message);
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      function showModalErr(msg) {
+        var el = document.getElementById("modalError");
+        el.textContent = msg; el.classList.remove("hidden");
+      }
+
+      function setBusy(busy) {
+        document.getElementById("modalSaveBtn").disabled = busy;
+        document.getElementById("modalSaveText").textContent = busy ? "กำลังบันทึก..." : "บันทึก";
+        document.getElementById("modalSpinner").classList.toggle("hidden", !busy);
+      }
+
+      // ── Delete Confirm ────────────────────────────────────
+      var _deleteId = null;
+
+      function confirmDelete(userId, username) {
+        _deleteId = userId;
+        document.getElementById("confirmUsername").textContent = username;
+        document.getElementById("confirmModal").classList.remove("hidden");
+        document.getElementById("confirmDeleteBtn").onclick = doDelete;
+      }
+
+      function closeConfirm() {
+        _deleteId = null;
+        document.getElementById("confirmModal").classList.add("hidden");
+      }
+
+      async function doDelete() {
+        if (!_deleteId) return;
+        document.getElementById("confirmDeleteBtn").disabled = true;
+        document.getElementById("confirmSpinner").classList.remove("hidden");
+        try {
+          var res = await window.CRAuth.callGAS({ action: "deleteUser", token: session ? session.token : "", userId: _deleteId });
+          if (!res.success) throw new Error(res.error);
+          closeConfirm();
+          loadUsers();
+        } catch (err) {
+          alert("ลบไม่สำเร็จ: " + err.message);
+          document.getElementById("confirmDeleteBtn").disabled = false;
+          document.getElementById("confirmSpinner").classList.add("hidden");
+        }
+      }
+
+      // ── Close modals on backdrop click ────────────────────
+      document.getElementById("userModal").addEventListener("click", function(e){ if(e.target===this) closeUserModal(); });
+      document.getElementById("confirmModal").addEventListener("click", function(e){ if(e.target===this) closeConfirm(); });
 
       loadUsers();
     </script>
