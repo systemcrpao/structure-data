@@ -383,6 +383,16 @@
       <main class="flex-1 relative">
         <div id="map" class="w-full h-full"></div>
 
+        <!-- Mobile Login / Role-home Button (top-left, hidden on xl) -->
+        <button
+          id="mobileAuthBtn"
+          onclick="goToLogin(event)"
+          class="xl:hidden fixed top-4 left-4 z-[1002] bg-slate-800 border border-slate-700 text-white px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 transition-all active:scale-95 text-xs font-medium"
+        >
+          <i data-lucide="log-in" id="mobileAuthIcon" class="w-4 h-4 text-blue-400"></i>
+          <span id="mobileAuthLabel">เข้าสู่ระบบ</span>
+        </button>
+
         <!-- Mobile Toggle -->
         <button
           id="openSidebarBtn"
@@ -776,14 +786,26 @@
           });
       })();
 
-      // ── Auth footer link — แสดง label ตาม session ──────────
+      // ── Auth footer + mobile button — ปรับตาม session ──────
       (function () {
         var s = window.CRAuth && window.CRAuth.getSession();
+
+        // Sidebar footer link
         if (s) {
           var textEl = document.getElementById("footerAuthText");
           var iconEl = document.querySelector("#footerAuthLink i");
-          if (textEl) textEl.textContent = s.user + " (" + (s.displayRole || window.CRAuth.getRoleLabel(s.role)) + ")";
+          if (textEl)
+            textEl.textContent =
+              s.user + " (" + (s.displayRole || window.CRAuth.getRoleLabel(s.role)) + ")";
           if (iconEl) iconEl.setAttribute("data-lucide", "layout-dashboard");
+        }
+
+        // Mobile top-left button
+        var mIcon  = document.getElementById("mobileAuthIcon");
+        var mLabel = document.getElementById("mobileAuthLabel");
+        if (s && mIcon && mLabel) {
+          mIcon.setAttribute("data-lucide", "layout-dashboard");
+          mLabel.textContent = s.user;
         }
       })();
 

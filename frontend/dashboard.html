@@ -1,12 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Dashboard —
-      ระบบบริหารจัดการโครงสร้างพื้นฐาน
-    </title>
+    <title>Dashboard — ระบบบริหารจัดการโครงสร้างพื้นฐาน</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -219,8 +216,7 @@
                 ระบบบริหารจัดการโครงสร้างพื้นฐาน
               </h1>
               <p class="text-[11px] text-blue-400 font-medium">
-                ระบบ Dashboard &amp;
-                วิเคราะห์การใช้งาน
+                ระบบ Dashboard &amp; วิเคราะห์การใช้งาน
               </p>
             </div>
           </div>
@@ -229,8 +225,7 @@
             เข้าสู่ระบบ
           </h2>
           <p class="text-sm text-gray-400 mb-6">
-            เข้าสู่ระบบเพื่อดู Dashboard
-            สถิติการใช้งาน
+            เข้าสู่ระบบเพื่อดู Dashboard สถิติการใช้งาน
           </p>
 
           <form id="loginForm" novalidate>
@@ -336,8 +331,7 @@
               Dashboard วิเคราะห์การใช้งาน
             </h1>
             <p class="text-[10px] text-blue-400">
-              ระบบบริหารจัดการโครงสร้างพื้นฐาน
-              · อบจ.เชียงราย
+              ระบบบริหารจัดการโครงสร้างพื้นฐาน · อบจ.เชียงราย
             </p>
           </div>
         </div>
@@ -482,7 +476,7 @@
                 <option value="">ทุกสถานะ</option>
                 <option>รอดำเนินการ</option>
                 <option>กำลังดำเนินการ</option>
-                <option>แล้วเสร็จ</option>
+                <option>ดำเนินการเสร็จสิ้น</option>
                 <option>ยกเลิก</option>
                 <option>ระงับชั่วคราว</option>
               </select>
@@ -526,9 +520,7 @@
               class="spinner"
               style="width: 24px; height: 24px; border-width: 3px"
             ></div>
-            <span class="text-sm"
-              >กำลังโหลดข้อมูลโครงการ...</span
-            >
+            <span class="text-sm">กำลังโหลดข้อมูลโครงการ...</span>
           </div>
           <div
             id="sumError"
@@ -572,9 +564,7 @@
                   <h2 class="font-heading text-sm font-semibold text-white">
                     สถานะโครงการ
                   </h2>
-                  <p class="text-[10px] text-gray-500">
-                    สัดส่วนตามสถานะ
-                  </p>
+                  <p class="text-[10px] text-gray-500">สัดส่วนตามสถานะ</p>
                 </div>
               </div>
               <div style="height: 140px">
@@ -623,9 +613,7 @@
                   <h2 class="font-heading text-sm font-semibold text-white">
                     โครงการรายอำเภอ
                   </h2>
-                  <p class="text-[10px] text-gray-500">
-                    10 อำเภอสูงสุด
-                  </p>
+                  <p class="text-[10px] text-gray-500">10 อำเภอสูงสุด</p>
                 </div>
               </div>
               <div style="height: 200px">
@@ -646,12 +634,9 @@
               </div>
               <div>
                 <h2 class="font-heading text-sm font-semibold text-white">
-                  งบประมาณตามประเภทงาน
-                  (ล้านบาท)
+                  งบประมาณตามประเภทงาน (ล้านบาท)
                 </h2>
-                <p class="text-[10px] text-gray-500">
-                  วงเงินรวมแต่ละประเภท
-                </p>
+                <p class="text-[10px] text-gray-500">วงเงินรวมแต่ละประเภท</p>
               </div>
             </div>
             <div style="height: 200px">
@@ -672,9 +657,7 @@
                   <h2 class="font-heading text-sm font-semibold text-white">
                     รายการโครงการ
                   </h2>
-                  <p class="text-[10px] text-gray-500" id="sumTableCount">
-                    —
-                  </p>
+                  <p class="text-[10px] text-gray-500" id="sumTableCount">—</p>
                 </div>
               </div>
             </div>
@@ -682,25 +665,17 @@
               <table class="w-full text-xs text-left" style="min-width: 900px">
                 <thead class="bg-slate-700 text-gray-300">
                   <tr>
-                    <th class="px-3 py-2 font-medium w-10 text-center">
-                      ที่
-                    </th>
+                    <th class="px-3 py-2 font-medium w-10 text-center">ที่</th>
                     <th class="px-3 py-2 font-medium min-w-[200px]">
                       ชื่อโครงการ
                     </th>
-                    <th class="px-3 py-2 font-medium">
-                      ตำบล / อำเภอ
-                    </th>
-                    <th class="px-3 py-2 font-medium">
-                      ประเภทงาน
-                    </th>
+                    <th class="px-3 py-2 font-medium">ตำบล / อำเภอ</th>
+                    <th class="px-3 py-2 font-medium">ประเภทงาน</th>
                     <th class="px-3 py-2 font-medium text-right">
                       งบประมาณ (บาท)
                     </th>
                     <th class="px-3 py-2 font-medium">แหล่งงบ</th>
-                    <th class="px-3 py-2 font-medium text-center">
-                      สถานะ
-                    </th>
+                    <th class="px-3 py-2 font-medium text-center">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody
@@ -709,8 +684,7 @@
                 >
                   <tr>
                     <td colspan="7" class="py-12 text-center text-gray-500">
-                      กดปุ่ม "โหลด"
-                      เพื่อดูรายงาน
+                      กดปุ่ม "โหลด" เพื่อดูรายงาน
                     </td>
                   </tr>
                 </tbody>
@@ -752,9 +726,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                การเข้าใช้งานทั้งหมด
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">การเข้าใช้งานทั้งหมด</p>
             </div>
             <div
               class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
@@ -779,9 +751,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                ครั้งที่เข้าใช้วันนี้
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">ครั้งที่เข้าใช้วันนี้</p>
             </div>
             <div
               class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
@@ -803,9 +773,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                ผู้ใช้ที่กลับมาใช้ซ้ำ
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">ผู้ใช้ที่กลับมาใช้ซ้ำ</p>
             </div>
             <div
               class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
@@ -875,9 +843,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                การค้นหาโครงการ
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">การค้นหาโครงการ</p>
             </div>
             <div
               class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
@@ -899,9 +865,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                คลิกดูโครงการ
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">คลิกดูโครงการ</p>
             </div>
             <div
               class="kpi-card bg-slate-800 border border-slate-700 rounded-2xl p-4"
@@ -923,9 +887,7 @@
               >
                 —
               </p>
-              <p class="text-xs text-gray-400 mt-0.5">
-                ชั่วโมงที่ใช้งานมากสุด
-              </p>
+              <p class="text-xs text-gray-400 mt-0.5">ชั่วโมงที่ใช้งานมากสุด</p>
             </div>
           </section>
 
@@ -949,9 +911,7 @@
                     <h2 class="font-heading text-sm font-semibold text-white">
                       การเข้าใช้งานรายวัน
                     </h2>
-                    <p class="text-[11px] text-gray-500">
-                      30 วันล่าสุด
-                    </p>
+                    <p class="text-[11px] text-gray-500">30 วันล่าสุด</p>
                   </div>
                 </div>
               </div>
@@ -1044,8 +1004,7 @@
                     ฟีเจอร์ที่ใช้บ่อยที่สุด
                   </h2>
                   <p class="text-[11px] text-gray-500">
-                    จำนวนครั้งที่ใช้งานเครื่องมือต่าง
-                    ๆ
+                    จำนวนครั้งที่ใช้งานเครื่องมือต่าง ๆ
                   </p>
                 </div>
               </div>
@@ -1083,9 +1042,7 @@
                 <h2 class="font-heading text-sm font-semibold text-white">
                   รายการเข้าใช้งานล่าสุด
                 </h2>
-                <p class="text-[11px] text-gray-500">
-                  20 รายการล่าสุด
-                </p>
+                <p class="text-[11px] text-gray-500">20 รายการล่าสุด</p>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -1095,15 +1052,11 @@
                     <th class="pb-2 text-gray-400 font-medium pr-4">
                       วันที่/เวลา
                     </th>
-                    <th class="pb-2 text-gray-400 font-medium pr-4">
-                      อุปกรณ์
-                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">อุปกรณ์</th>
                     <th class="pb-2 text-gray-400 font-medium pr-4">
                       เบราว์เซอร์
                     </th>
-                    <th class="pb-2 text-gray-400 font-medium pr-4">
-                      หน้าจอ
-                    </th>
+                    <th class="pb-2 text-gray-400 font-medium pr-4">หน้าจอ</th>
                     <th class="pb-2 text-gray-400 font-medium pr-4">
                       แหล่งที่มา
                     </th>
@@ -1147,10 +1100,8 @@
           </section>
 
           <p class="text-[11px] text-gray-600 text-center pb-4">
-            ข้อมูลถูกเก็บเฉพาะบนเบราว์เซอร์นี้
-            (localStorage) ·
-            สำหรับสถิติข้ามอุปกรณ์
-            โปรดเชื่อมต่อ Google Analytics
+            ข้อมูลถูกเก็บเฉพาะบนเบราว์เซอร์นี้ (localStorage) ·
+            สำหรับสถิติข้ามอุปกรณ์ โปรดเชื่อมต่อ Google Analytics
           </p>
         </div>
         <!-- /tabAnalytics -->

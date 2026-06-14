@@ -75,14 +75,14 @@
   }
 
   var STATUS_COLORS = {
-    'แล้วเสร็จ':      '#10b981',
+    'ดำเนินการเสร็จสิ้น':      '#10b981',
     'กำลังดำเนินการ': '#f59e0b',
     'รอดำเนินการ':    '#3b82f6',
     'ยกเลิก':         '#ef4444',
     'ระงับชั่วคราว':  '#94a3b8',
   };
   var STATUS_BADGE = {
-    'แล้วเสร็จ':      'sum-s-done',
+    'ดำเนินการเสร็จสิ้น':      'sum-s-done',
     'กำลังดำเนินการ': 'sum-s-progress',
     'รอดำเนินการ':    'sum-s-wait',
     'ยกเลิก':         'sum-s-cancel',
@@ -149,7 +149,7 @@
   function buildSummaryKPIs(projects) {
     var total       = projects.length;
     var totalBudget = projects.reduce(function (a, p) { return a + (parseFloat(p['งบประมาณ']) || 0); }, 0);
-    var done        = projects.filter(function (p) { return (p['สถานะ']||'').toString().trim() === 'แล้วเสร็จ'; }).length;
+    var done        = projects.filter(function (p) { return (p['สถานะ']||'').toString().trim() === 'ดำเนินการเสร็จสิ้น'; }).length;
     var inProg      = projects.filter(function (p) { return (p['สถานะ']||'').toString().trim() === 'กำลังดำเนินการ'; }).length;
     var waiting     = projects.filter(function (p) { return (p['สถานะ']||'').toString().trim() === 'รอดำเนินการ'; }).length;
     var distCount   = new Set(projects.map(function (p) { return (p['อำเภอ']||'').toString().trim(); }).filter(Boolean)).size;
@@ -157,7 +157,7 @@
     var kpis = [
       { label:'โครงการทั้งหมด', value:total.toLocaleString('th-TH'),   sub:'รายการ',                       icon:'folder-open',    color:'blue'    },
       { label:'งบประมาณรวม',    value:fmtBudget(totalBudget),          sub:'บาท',                          icon:'coins',          color:'violet'  },
-      { label:'แล้วเสร็จ',      value:done.toLocaleString('th-TH'),    sub:donePct+'% ของโครงการทั้งหมด',  icon:'check-circle-2', color:'emerald' },
+      { label:'ดำเนินการเสร็จสิ้น',      value:done.toLocaleString('th-TH'),    sub:donePct+'% ของโครงการทั้งหมด',  icon:'check-circle-2', color:'emerald' },
       { label:'กำลังดำเนินการ', value:inProg.toLocaleString('th-TH'),  sub:'รายการ',                       icon:'hammer',         color:'amber'   },
       { label:'รอดำเนินการ',    value:waiting.toLocaleString('th-TH'), sub:'รายการ',                       icon:'hourglass',      color:'sky'     },
       { label:'ครอบคลุม',       value:distCount.toLocaleString('th-TH'),sub:'อำเภอ',                       icon:'map-pin',        color:'rose'    },

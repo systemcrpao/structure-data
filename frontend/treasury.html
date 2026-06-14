@@ -108,20 +108,58 @@
         border: 1px solid #475569;
       }
 
-      /* Status select */
+      /* Status select — base */
       .status-select {
-        background: #334155;
-        border: 1px solid #475569;
         border-radius: 0.5rem;
-        color: #f1f5f9;
         font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
+        padding: 0.3rem 0.55rem;
         outline: none;
         cursor: pointer;
+        font-weight: 600;
+        border-width: 1px;
+        border-style: solid;
+        transition:
+          box-shadow 0.15s,
+          opacity 0.15s;
+        min-width: 9rem;
       }
       .status-select:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+      }
+      /* Color variants — match badge colors */
+      .sel-wait {
+        background: #1e3a5f;
+        border-color: #1d4ed8;
+        color: #93c5fd;
+      }
+      .sel-progress {
+        background: #422006;
+        border-color: #92400e;
+        color: #fbbf24;
+      }
+      .sel-done {
+        background: #052e16;
+        border-color: #166534;
+        color: #4ade80;
+      }
+      .sel-cancel {
+        background: #3f1818;
+        border-color: #991b1b;
+        color: #f87171;
+      }
+      .sel-pause {
+        background: #2d2b2b;
+        border-color: #475569;
+        color: #94a3b8;
+      }
+
+      /* Row with pending changes */
+      .row-dirty {
+        border-left: 3px solid #f59e0b !important;
+        background: rgba(245, 158, 11, 0.04);
+      }
+      .row-dirty td:first-child {
+        padding-left: 13px;
       }
 
       /* Toast */
@@ -258,7 +296,7 @@
             <option value="">ทุกสถานะ</option>
             <option>รอดำเนินการ</option>
             <option>กำลังดำเนินการ</option>
-            <option>แล้วเสร็จ</option>
+            <option>ดำเนินการเสร็จสิ้น</option>
             <option>ยกเลิก</option>
             <option>ระงับชั่วคราว</option>
           </select>
@@ -273,12 +311,28 @@
             oninput="filterTable()"
           />
         </div>
-        <button
-          onclick="loadData()"
-          class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-colors"
-        >
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> โหลดใหม่
-        </button>
+        <div class="flex gap-2 items-end">
+          <button
+            onclick="loadData()"
+            class="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white rounded-xl transition-colors border border-slate-600"
+          >
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> โหลดใหม่
+          </button>
+          <button
+            id="saveAllBtn"
+            onclick="saveAllDirty()"
+            disabled
+            class="relative flex items-center gap-1.5 px-4 py-2 text-xs font-semibold bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
+          >
+            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+            บันทึกทั้งหมด
+            <span
+              id="dirtyBadge"
+              class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center leading-none"
+              >0</span
+            >
+          </button>
+        </div>
       </div>
 
       <!-- Stats row -->
@@ -299,7 +353,7 @@
           class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center"
         >
           <p class="text-xl font-bold text-emerald-400" id="statDone">—</p>
-          <p class="text-xs text-gray-400">แล้วเสร็จ</p>
+          <p class="text-xs text-gray-400">ดำเนินการเสร็จสิ้น</p>
         </div>
         <div
           class="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center"
@@ -339,12 +393,12 @@
             >
               <tr>
                 <th class="px-4 py-3 w-10">#</th>
-                <th class="px-4 py-3 min-w-[220px]">ชื่อโครงการ</th>
-                <th class="px-4 py-3 w-16">ปีงบ</th>
-                <th class="px-4 py-3 w-28">อำเภอ</th>
-                <th class="px-4 py-3 w-24">ตำบล</th>
-                <th class="px-4 py-3 w-32 text-right">งบประมาณ</th>
-                <th class="px-4 py-3 w-44">สถานะการดำเนินงาน</th>
+                <th class="px-4 py-3 min-w-[200px]">ชื่อโครงการ</th>
+                <th class="px-4 py-3 w-14">ปีงบ</th>
+                <th class="px-4 py-3 w-24">อำเภอ / ตำบล</th>
+                <th class="px-4 py-3 w-28 text-right">งบประมาณ</th>
+                <th class="px-4 py-3 w-36">สถานะปัจจุบัน</th>
+                <th class="px-4 py-3 w-40">เปลี่ยนเป็น</th>
                 <th class="px-4 py-3 w-20 text-center">บันทึก</th>
               </tr>
             </thead>
@@ -355,32 +409,27 @@
           </table>
         </div>
 
-        <!-- Pagination -->
-        <div
-          id="pagination"
-          class="hidden px-4 py-3 border-t border-slate-700 flex items-center justify-between text-xs text-gray-400"
-        >
-          <span id="pageInfo"></span>
-          <div class="flex items-center gap-2">
-            <button
-              id="prevBtn"
-              onclick="changePage(-1)"
-              class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              ← ก่อนหน้า
-            </button>
-            <span
-              id="pageNum"
-              class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-medium"
-              >1</span
-            >
-            <button
-              id="nextBtn"
-              onclick="changePage(1)"
-              class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              ถัดไป →
-            </button>
+        <!-- Pagination + page-size -->
+        <div id="pagination" class="hidden px-4 py-3 border-t border-slate-700">
+          <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
+            <span id="pageInfo"></span>
+            <div class="flex items-center gap-2">
+              <span>แสดง</span>
+              <select
+                id="pageSizeSelect"
+                onchange="changePageSize()"
+                class="filter-input py-1 text-xs"
+                style="width:6rem"
+              >
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="0">ทั้งหมด</option>
+              </select>
+              <span>รายการ</span>
+            </div>
+            <div id="pageButtons" class="flex items-center gap-1 flex-wrap"></div>
           </div>
         </div>
       </div>
@@ -406,30 +455,48 @@
 
       lucide.createIcons();
 
-      // ─── Data & Pagination ────────────────────────────────
+      // ─── Constants ────────────────────────────────────────
       var ALL_PROJECTS = [];
       var FILTERED = [];
-      var PAGE_SIZE = 30;
+      var _pageSize = 20;   // เริ่มต้นที่ 20 (เหมือน technician)
       var currentPage = 1;
 
-      var STATUS_CLASSES = {
+      // คีย์ dirty: "rowId|year" → { rowId, year, newStatus }
+      var _dirty = {};
+
+      var STATUS_BADGE = {
         รอดำเนินการ: "s-wait",
         กำลังดำเนินการ: "s-progress",
-        แล้วเสร็จ: "s-done",
+        ดำเนินการเสร็จสิ้น: "s-done",
         ยกเลิก: "s-cancel",
         ระงับชั่วคราว: "s-pause",
       };
-
+      var STATUS_SEL = {
+        รอดำเนินการ: "sel-wait",
+        กำลังดำเนินการ: "sel-progress",
+        ดำเนินการเสร็จสิ้น: "sel-done",
+        ยกเลิก: "sel-cancel",
+        ระงับชั่วคราว: "sel-pause",
+      };
+      var STATUS_ICON = {
+        รอดำเนินการ: "🕐",
+        กำลังดำเนินการ: "🔨",
+        ดำเนินการเสร็จสิ้น: "✅",
+        ยกเลิก: "❌",
+        ระงับชั่วคราว: "⏸",
+      };
       var STATUSES = [
         "รอดำเนินการ",
         "กำลังดำเนินการ",
-        "แล้วเสร็จ",
+        "ดำเนินการเสร็จสิ้น",
         "ยกเลิก",
         "ระงับชั่วคราว",
       ];
 
-      // ─── Load data via GAS ───────────────────────────────
+      // ─── Load data ────────────────────────────────────────
       async function loadData() {
+        _dirty = {};
+        updateDirtyUI();
         showLoading(true);
         var year = document.getElementById("filterYear").value;
         try {
@@ -465,7 +532,6 @@
           var title = (p["ชื่อโครงการ"] || "").toString().toLowerCase();
           var dist = (p["อำเภอ"] || "").toString().toLowerCase();
           var pStatus = (p["สถานะ"] || "").toString();
-
           if (district && dist.indexOf(district) === -1) return false;
           if (status && pStatus !== status) return false;
           if (search && title.indexOf(search) === -1) return false;
@@ -477,13 +543,15 @@
         updateStats();
       }
 
+      // ─── Render ───────────────────────────────────────────
       function renderPage() {
-        var tbody = document.getElementById("tableBody");
-        var start = (currentPage - 1) * PAGE_SIZE;
-        var end = Math.min(start + PAGE_SIZE, FILTERED.length);
-        var slice = FILTERED.slice(start, end);
+        var tbody    = document.getElementById("tableBody");
+        var pageSize = _pageSize === 0 ? FILTERED.length : _pageSize;
+        var start    = (currentPage - 1) * pageSize;
+        var end      = _pageSize === 0 ? FILTERED.length : Math.min(start + pageSize, FILTERED.length);
+        var slice    = FILTERED.slice(start, end);
 
-        if (slice.length === 0) {
+        if (!slice.length) {
           showEmpty();
           return;
         }
@@ -491,68 +559,94 @@
         tbody.innerHTML = slice
           .map(function (p, idx) {
             var rowId = parseInt(p["ที่"] || 0);
-            var year = (p["_sheet"] || "").toString();
-            var status = (p["สถานะ"] || "รอดำเนินการ").toString();
+            var yr = (p["_sheet"] || "").toString();
+            var savedSt = (p["สถานะ"] || "รอดำเนินการ").toString();
+            var dirtyKey = rowId + "|" + yr;
+            var pendSt = _dirty[dirtyKey]
+              ? _dirty[dirtyKey].newStatus
+              : savedSt;
+            var isDirty = !!_dirty[dirtyKey];
+
             var budget = parseFloat(p["งบประมาณ"] || 0);
             var budgetFmt = isNaN(budget)
               ? "—"
               : budget.toLocaleString("th-TH") + " ฿";
+            var bdgCls = "s-wait";
 
+            var badgeCls = STATUS_BADGE[savedSt] || "s-pause";
+            var selCls = STATUS_SEL[pendSt] || "sel-pause";
+
+            // options with icon prefix
             var options = STATUSES.map(function (s) {
+              var icon = STATUS_ICON[s] || "";
               return (
                 '<option value="' +
                 escHtml(s) +
-                '" ' +
-                (s === status ? "selected" : "") +
+                '"' +
+                (s === pendSt ? " selected" : "") +
                 ">" +
+                icon +
+                " " +
                 escHtml(s) +
                 "</option>"
               );
             }).join("");
 
             return (
-              '<tr class="hover:bg-slate-700/30 transition-colors" id="row-' +
-              start +
-              idx +
+              '<tr class="transition-colors' +
+              (isDirty ? " row-dirty" : " hover:bg-slate-700/30") +
+              '" data-dirty-key="' +
+              escHtml(dirtyKey) +
               '">' +
               '<td class="px-4 py-3 text-gray-500 text-xs">' +
               (start + idx + 1) +
               "</td>" +
-              '<td class="px-4 py-3">' +
-              '<p class="font-medium text-white leading-snug line-clamp-2 max-w-xs">' +
+              '<td class="px-4 py-3"><p class="font-medium text-white leading-snug line-clamp-2" style="max-width:220px">' +
               escHtml(p["ชื่อโครงการ"] || "") +
-              "</p>" +
-              "</td>" +
+              "</p></td>" +
               '<td class="px-4 py-3 text-gray-400 text-xs">' +
-              escHtml(year) +
+              escHtml(yr) +
               "</td>" +
-              '<td class="px-4 py-3 text-gray-300 text-xs">' +
+              '<td class="px-4 py-3 text-gray-300 text-xs leading-tight"><span class="block">' +
               escHtml(p["อำเภอ"] || "") +
-              "</td>" +
-              '<td class="px-4 py-3 text-gray-400 text-xs">' +
+              '</span><span class="text-gray-500">' +
               escHtml(p["ตำบล"] || "") +
-              "</td>" +
+              "</span></td>" +
               '<td class="px-4 py-3 text-right text-gray-300 text-xs font-mono whitespace-nowrap">' +
               budgetFmt +
               "</td>" +
+              // สถานะปัจจุบัน — badge (สิ่งที่บันทึกอยู่ใน DB)
               '<td class="px-4 py-3">' +
-              '<select class="status-select" data-row-id="' +
+              '<span class="status-badge ' +
+              badgeCls +
+              '">' +
+              (STATUS_ICON[savedSt] || "") +
+              " " +
+              escHtml(savedSt) +
+              "</span>" +
+              "</td>" +
+              // เปลี่ยนเป็น — select
+              '<td class="px-4 py-3">' +
+              '<select class="status-select ' +
+              selCls +
+              '" data-row-id="' +
               rowId +
               '" data-year="' +
-              escHtml(year) +
-              '">' +
+              escHtml(yr) +
+              '" data-orig="' +
+              escHtml(savedSt) +
+              '" onchange="onSelectChange(this)">' +
               options +
               "</select>" +
               "</td>" +
+              // ปุ่มบันทึกรายแถว
               '<td class="px-4 py-3 text-center">' +
-              '<button onclick="saveStatus(this, ' +
+              '<button onclick="saveRow(this,' +
               rowId +
-              ", '" +
-              escJs(year) +
+              ",'" +
+              escJs(yr) +
               "')\"" +
-              ' class="px-2.5 py-1 text-xs font-semibold bg-slate-700 hover:bg-violet-700 text-gray-300 hover:text-white rounded-lg transition-colors">' +
-              "บันทึก" +
-              "</button>" +
+              ' class="px-2.5 py-1 text-xs font-semibold bg-slate-700 hover:bg-violet-700 text-gray-300 hover:text-white rounded-lg transition-colors whitespace-nowrap">บันทึก</button>' +
               "</td>" +
               "</tr>"
             );
@@ -564,35 +658,171 @@
         updatePagination();
       }
 
-      function updatePagination() {
-        var total = FILTERED.length;
-        var pages = Math.ceil(total / PAGE_SIZE);
-        var start = (currentPage - 1) * PAGE_SIZE + 1;
-        var end = Math.min(currentPage * PAGE_SIZE, total);
+      // ─── Dirty tracking ───────────────────────────────────
+      function onSelectChange(sel) {
+        var rowId = parseInt(sel.dataset.rowId);
+        var yr = sel.dataset.year;
+        var orig = sel.dataset.orig;
+        var newSt = sel.value;
+        var key = rowId + "|" + yr;
+        var tr = sel.closest("tr");
 
-        document.getElementById("pageInfo").textContent =
-          "แสดง " +
-          (total > 0 ? start : 0) +
-          "–" +
-          end +
-          " จาก " +
-          total +
-          " รายการ";
-        document.getElementById("pageNum").textContent = currentPage;
-        document.getElementById("prevBtn").disabled = currentPage <= 1;
-        document.getElementById("nextBtn").disabled = currentPage >= pages;
-        document
-          .getElementById("pagination")
-          .classList.toggle("hidden", total === 0);
+        // อัปเดตสี select ตามค่าที่เลือก
+        sel.className = "status-select " + (STATUS_SEL[newSt] || "sel-pause");
+
+        if (newSt !== orig) {
+          _dirty[key] = { rowId: rowId, year: yr, newStatus: newSt };
+          tr.classList.add("row-dirty");
+          tr.classList.remove("hover:bg-slate-700/30");
+        } else {
+          delete _dirty[key];
+          tr.classList.remove("row-dirty");
+          tr.classList.add("hover:bg-slate-700/30");
+        }
+        updateDirtyUI();
       }
 
-      function changePage(delta) {
-        var pages = Math.ceil(FILTERED.length / PAGE_SIZE);
-        currentPage = Math.max(1, Math.min(pages, currentPage + delta));
-        renderPage();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+      function updateDirtyUI() {
+        var count = Object.keys(_dirty).length;
+        var btn = document.getElementById("saveAllBtn");
+        var badge = document.getElementById("dirtyBadge");
+        btn.disabled = count === 0;
+        if (count > 0) {
+          badge.textContent = count > 99 ? "99+" : count;
+          badge.classList.remove("hidden");
+        } else {
+          badge.classList.add("hidden");
+        }
       }
 
+      // ─── Save functions ───────────────────────────────────
+      async function _callSave(rowId, year, status) {
+        var res = await window.CRAuth.callGAS({
+          action: "updateStatus",
+          token: session.token,
+          rowId: rowId,
+          year: year,
+          status: status,
+        });
+        if (!res.success) throw new Error(res.error || "เกิดข้อผิดพลาด");
+        // อัปเดต local data
+        ALL_PROJECTS.forEach(function (p) {
+          if (parseInt(p["ที่"]) === rowId && (p["_sheet"] || "") === year) {
+            p["สถานะ"] = status;
+          }
+        });
+        FILTERED.forEach(function (p) {
+          if (parseInt(p["ที่"]) === rowId && (p["_sheet"] || "") === year) {
+            p["สถานะ"] = status;
+          }
+        });
+      }
+
+      // บันทึกทีละแถว
+      async function saveRow(btn, rowId, year) {
+        var tr = btn.closest("tr");
+        var select = tr.querySelector(".status-select");
+        var status = select ? select.value : "";
+        if (!status || !rowId || !year) {
+          showToast("ข้อมูลไม่ครบถ้วน", "error");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "...";
+        try {
+          await _callSave(rowId, year, status);
+          // อัปเดต badge สถานะปัจจุบันในแถว
+          var badgeTd = tr.querySelector(".status-badge");
+          if (badgeTd) {
+            badgeTd.className =
+              "status-badge " + (STATUS_BADGE[status] || "s-pause");
+            badgeTd.textContent = (STATUS_ICON[status] || "") + " " + status;
+          }
+          // clear dirty
+          var key = rowId + "|" + year;
+          delete _dirty[key];
+          tr.classList.remove("row-dirty");
+          tr.classList.add("hover:bg-slate-700/30");
+          if (select) select.dataset.orig = status;
+          updateDirtyUI();
+          updateStats();
+          showToast("บันทึกสำเร็จ", "ok");
+        } catch (err) {
+          showToast("บันทึกไม่สำเร็จ: " + err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "บันทึก";
+        }
+      }
+
+      // บันทึกทั้งหมดที่เปลี่ยน
+      async function saveAllDirty() {
+        var keys = Object.keys(_dirty);
+        if (!keys.length) return;
+
+        var count = keys.length;
+        if (
+          !confirm(
+            "ยืนยันการบันทึกสถานะ " +
+              count +
+              " โครงการ ?\n\nระบบจะบันทึกทีละโครงการ กรุณารอจนกว่าจะเสร็จสิ้น",
+          )
+        )
+          return;
+
+        var btn = document.getElementById("saveAllBtn");
+        btn.disabled = true;
+        btn.querySelector("span").textContent =
+          "กำลังบันทึก 0/" + count + "...";
+
+        var ok = 0,
+          fail = 0;
+        for (var i = 0; i < keys.length; i++) {
+          var key = keys[i];
+          var item = _dirty[key];
+          if (!item) continue;
+          btn.querySelector("span").textContent =
+            "กำลังบันทึก " + (i + 1) + "/" + count + "...";
+          try {
+            await _callSave(item.rowId, item.year, item.newStatus);
+            delete _dirty[key];
+            ok++;
+          } catch (e) {
+            fail++;
+          }
+        }
+
+        // อัปเดต UI badges ในตาราง
+        document.querySelectorAll("tr[data-dirty-key]").forEach(function (tr) {
+          var k = tr.dataset.dirtyKey;
+          var sel = tr.querySelector(".status-select");
+          var bdg = tr.querySelector(".status-badge");
+          if (!_dirty[k] && sel && bdg) {
+            var st = sel.value;
+            bdg.className = "status-badge " + (STATUS_BADGE[st] || "s-pause");
+            bdg.textContent = (STATUS_ICON[st] || "") + " " + st;
+            if (sel) sel.dataset.orig = st;
+            tr.classList.remove("row-dirty");
+            tr.classList.add("hover:bg-slate-700/30");
+          }
+        });
+
+        updateDirtyUI();
+        updateStats();
+        btn.querySelector("span").textContent = "บันทึกทั้งหมด";
+
+        if (fail === 0) {
+          showToast("บันทึกสำเร็จทั้งหมด " + ok + " โครงการ", "ok");
+        } else {
+          showToast(
+            "บันทึกสำเร็จ " + ok + " รายการ, ล้มเหลว " + fail + " รายการ",
+            "error",
+          );
+        }
+      }
+
+      // ─── Stats ────────────────────────────────────────────
       function updateStats() {
         var src = FILTERED.length > 0 ? FILTERED : ALL_PROJECTS;
         var total = src.length;
@@ -600,7 +830,7 @@
           return (p["สถานะ"] || "") === "กำลังดำเนินการ";
         }).length;
         var done = src.filter(function (p) {
-          return (p["สถานะ"] || "") === "แล้วเสร็จ";
+          return (p["สถานะ"] || "") === "ดำเนินการเสร็จสิ้น";
         }).length;
         var wait = src.filter(function (p) {
           return (p["สถานะ"] || "") === "รอดำเนินการ";
@@ -615,52 +845,72 @@
           wait.toLocaleString("th-TH");
       }
 
-      // ─── Save status ──────────────────────────────────────
-      async function saveStatus(btn, rowId, year) {
-        // หา select ใน row เดียวกัน
-        var tr = btn.closest("tr");
-        var select = tr.querySelector(".status-select");
-        var status = select ? select.value : "";
+      // ─── Pagination ───────────────────────────────────────
+      function changePageSize() {
+        _pageSize = parseInt(document.getElementById("pageSizeSelect").value, 10);
+        currentPage = 1;
+        renderPage();
+      }
 
-        if (!status || !rowId || !year) {
-          showToast("ข้อมูลไม่ครบถ้วน", "error");
-          return;
+      function goToPage(n) {
+        currentPage = n;
+        renderPage();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function updatePagination() {
+        var total    = FILTERED.length;
+        var pageSize = _pageSize === 0 ? total : _pageSize;
+        var pages    = pageSize > 0 ? Math.ceil(total / pageSize) : 1;
+        var start    = (currentPage - 1) * pageSize + 1;
+        var end      = _pageSize === 0 ? total : Math.min(currentPage * pageSize, total);
+        document.getElementById("pageInfo").textContent =
+          "แสดง " + (total > 0 ? start : 0) + "–" + end + " จาก " + total + " รายการ";
+        document.getElementById("pagination").classList.toggle("hidden", total === 0);
+
+        var pgEl = document.getElementById("pageButtons");
+        if (_pageSize === 0 || pages <= 1) {
+          pgEl.innerHTML = "";
+        } else {
+          pgEl.innerHTML = buildPaginationHTML(pages, currentPage);
         }
+      }
 
-        // ยืนยันก่อนบันทึก
-        if (!confirm('ยืนยันการเปลี่ยนสถานะเป็น "' + status + '" ?')) return;
+      function buildPaginationHTML(totalPages, current) {
+        var base     = 'class="px-2.5 py-1 text-xs rounded-lg border transition-colors ';
+        var active   = base + 'bg-blue-600 border-blue-600 text-white font-semibold"';
+        var normal   = base + 'border-slate-600 text-gray-400 hover:bg-slate-700 hover:text-white"';
+        var dis      = base + 'border-slate-700 text-slate-600 cursor-not-allowed"';
+        var html = "";
 
-        btn.disabled = true;
-        btn.textContent = "...";
+        html += current > 1
+          ? '<button ' + normal + ' onclick="goToPage(' + (current - 1) + ')">‹ ก่อนหน้า</button>'
+          : '<button ' + dis + ' disabled>‹ ก่อนหน้า</button>';
 
-        try {
-          var res = await window.CRAuth.callGAS({
-            action: "updateStatus",
-            token: session.token,
-            rowId: rowId,
-            year: year,
-            status: status,
-          });
-          if (res.success) {
-            showToast("อัปเดตสถานะสำเร็จ", "ok");
-            // อัปเดต local data
-            ALL_PROJECTS.forEach(function (p) {
-              if (
-                parseInt(p["ที่"]) === rowId &&
-                (p["_sheet"] || "") === year
-              ) {
-                p["สถานะ"] = status;
-              }
-            });
+        var pgs = [];
+        if (totalPages <= 7) {
+          for (var i = 1; i <= totalPages; i++) pgs.push(i);
+        } else {
+          pgs.push(1);
+          if (current > 3) pgs.push("...");
+          for (var j = Math.max(2, current - 1); j <= Math.min(totalPages - 1, current + 1); j++) pgs.push(j);
+          if (current < totalPages - 2) pgs.push("...");
+          pgs.push(totalPages);
+        }
+        pgs.forEach(function (pg) {
+          if (pg === "...") {
+            html += '<span class="px-1 text-gray-500 text-xs">…</span>';
+          } else if (pg === current) {
+            html += '<button ' + active + ' onclick="goToPage(' + pg + ')">' + pg + '</button>';
           } else {
-            showToast(res.error || "เกิดข้อผิดพลาด", "error");
+            html += '<button ' + normal + ' onclick="goToPage(' + pg + ')">' + pg + '</button>';
           }
-        } catch (err) {
-          showToast("ไม่สามารถเชื่อมต่อได้: " + err.message, "error");
-        } finally {
-          btn.disabled = false;
-          btn.textContent = "บันทึก";
-        }
+        });
+
+        html += current < totalPages
+          ? '<button ' + normal + ' onclick="goToPage(' + (current + 1) + ')">ถัดไป ›</button>'
+          : '<button ' + dis + ' disabled>ถัดไป ›</button>';
+        return html;
       }
 
       // ─── UI helpers ───────────────────────────────────────
@@ -688,7 +938,7 @@
           "fixed top-16 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm font-medium border max-w-xs " +
           (isOk
             ? "bg-emerald-900/80 border-emerald-700 text-emerald-300"
-            : "bg-red-900/80    border-red-700    text-red-300");
+            : "bg-red-900/80 border-red-700 text-red-300");
         var icon = document.getElementById("toastIcon");
         icon.setAttribute("data-lucide", isOk ? "check-circle" : "x-circle");
         lucide.createIcons({ nodes: [icon] });
