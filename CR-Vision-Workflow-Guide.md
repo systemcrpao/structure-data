@@ -81,7 +81,53 @@
 
 ---
 
-## ⚙️ 4. กระบวนการทำงานของ Backend API (Code.gs)
+---
+
+## 🌐 4. Public Open Data API (GET Endpoint)
+
+ไฟล์ที่เกี่ยวข้อง: `backend/Code.gs` → ฟังก์ชัน `doGet`, `handlePublicApi_`
+
+API สาธารณะนี้ **ไม่ต้อง Authentication** เปิดให้หน่วยงานภายนอกดึงข้อมูลโครงการได้โดยตรง
+
+### Endpoint
+
+```
+GET  <GAS_WEBAPP_URL>?api=public            → โครงการทุกปีงบประมาณ
+GET  <GAS_WEBAPP_URL>?api=public&year=2568  → กรองเฉพาะปีงบประมาณที่ระบุ
+```
+
+### Response Format
+
+```json
+{
+  "status": "success",
+  "generated": "2026-06-14T15:00:00.000Z",
+  "source": "CR-Vision — องค์การบริหารส่วนจังหวัดเชียงราย",
+  "total": 312,
+  "data": [
+    {
+      "ปีงบประมาณ": "2568",
+      "ชื่อโครงการ": "ก่อสร้างถนน คสล. หมู่ที่ 1 บ้านดู่",
+      "งบประมาณ": "2500000",
+      "ตำบล": "บ้านดู่",
+      "อำเภอ": "เมืองเชียงราย",
+      "สถานที่ดำเนินงาน": "หมู่ที่ 1",
+      "พิกัดเริ่มต้น": "19.9071, 99.8325",
+      "สถานะ": "ดำเนินการเสร็จสิ้น"
+    }
+  ]
+}
+```
+
+### ข้อกำหนดและความปลอดภัย
+
+- ฟิลด์ `ที่` (row index ใน Sheet) ถูกซ่อนจาก response เพื่อความปลอดภัย
+- ข้อมูลอ่านจาก `DATA_SHEET_ID` (Google Sheets สาธารณะ) โดยตรง — Auth Sheet ไม่ถูกเปิดเผย
+- Admin สามารถคัดลอก URL นี้ได้จาก Card **"บริการข้อมูล API (Open Data)"** ในหน้า `admin.html`
+
+---
+
+## ⚙️ 5. กระบวนการทำงานของ Backend API (Code.gs)
 
 Backend ทำงานผ่านฟังก์ชัน `doPost(e)` โดยรับ Payload เป็น JSON (Content-Type: text/plain เพื่อเลี่ยง CORS)
 
@@ -99,7 +145,7 @@ Backend ทำงานผ่านฟังก์ชัน `doPost(e)` โด�
 
 ---
 
-## 🗺️ 5. กระบวนการทำงานของ Frontend & Map (app.js)
+## 🗺️ 6. กระบวนการทำงานของ Frontend & Map (app.js)
 
 1.  **Data Fetching (GViz):** ฟังก์ชัน `fetchSheetData()` ยิง Request ไปยัง Google Sheets (`/gviz/tq`) ตามปีงบประมาณที่คอนฟิกไว้ (เช่น 2568, 2569) เพื่อดึงข้อมูลมาแสดงผลโดยไม่ต้องผ่าน GAS
 2.  **Data Parsing:**
@@ -113,7 +159,7 @@ Backend ทำงานผ่านฟังก์ชัน `doPost(e)` โด�
 
 ---
 
-## 🐛 6. แนวทางการ Debug สำหรับ AI Agent (Troubleshooting Guide)
+## 🐛 7. แนวทางการ Debug สำหรับ AI Agent (Troubleshooting Guide)
 
 หากคุณ (AI) ต้องวิเคราะห์ Bug ในระบบนี้ ให้พิจารณาตรวจสอบจุดต่อไปนี้เป็นลำดับแรก:
 

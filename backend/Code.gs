@@ -106,8 +106,14 @@ function doPost(e) {
   }
 }
 
-// Health check — GET request ไม่ต้อง auth
+// GET entry point — Health check + Public Open Data API
 function doGet(e) {
+  // ?api=public  → Open Data endpoint (ไม่ต้อง auth)
+  if (e && e.parameter && e.parameter.api === "public") {
+    return handlePublicApi_(e);
+  }
+
+  // Default: health check
   return ContentService.createTextOutput(
     JSON.stringify({
       status: "ok",
@@ -115,6 +121,59 @@ function doGet(e) {
       ts: new Date().toISOString(),
     }),
   ).setMimeType(ContentService.MimeType.JSON);
+}
+
+// ─── Public Open Data API ─────────────────────────────────────────────────────
+// GET ?api=public              → โครงการทุกปี
+// GET ?api=public&year=2568    → โครงการปีนั้น
+function handlePublicApi_(e) {
+  try {
+    var ss = SpreadsheetApp.openById(DATA_SHEET_ID);
+    var year =
+      e.parameter && e.parameter.year
+        ? e.parameter.year.toString().trim()
+        : "";
+
+    var sheets = year
+      ? [ss.getSheetByName(year)].filter(Boolean)
+      : ss.getSheets().filter(function (s) {
+          return s.getName().charAt(0) !== "_";
+        });
+
+    var all = [];
+    sheets.forEach(function (sheet) {
+      var data = sheet.getDataRange().getValues();
+      if (data.length < 2) return;
+      var headers = data[0].map(function (h) {
+        return normalizeHeader_(h);
+      });
+      for (var i = 1; i < data.length; i++) {
+        if (!data[i][1]) continue; // ข้ามแถวว่าง
+        var obj = { ปีงบประมาณ: sheet.getName() };
+        headers.forEach(function (h, j) {
+          if (h === "ที่") return; // ไม่เปิดเผย row index ของ sheet
+          obj[h] = data[i][j] !== undefined ? data[i][j].toString() : "";
+        });
+        all.push(obj);
+      }
+    });
+
+    var responsePayload = {
+      status: "success",
+      generated: new Date().toISOString(),
+      source: "CR-Vision — องค์การบริหารส่วนจังหวัดเชียงราย",
+      total: all.length,
+      data: all,
+    };
+
+    return ContentService.createTextOutput(
+      JSON.stringify(responsePayload),
+    ).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ status: "error", message: err.message }),
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 // ═══════════════════════════════════════════

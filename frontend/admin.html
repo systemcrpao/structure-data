@@ -287,6 +287,71 @@
         <p id="userError" class="hidden text-xs text-red-400 py-2"></p>
       </div>
 
+      <!-- Open Data API Card -->
+      <div class="mb-6">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
+          <h3
+            class="font-heading text-sm font-semibold text-white flex items-center gap-2 mb-1"
+          >
+            <i data-lucide="globe" class="w-4 h-4 text-cyan-400"></i>
+            บริการข้อมูล API สำหรับหน่วยงานภายนอก (Open Data)
+          </h3>
+          <p class="text-xs text-gray-400 mb-4">
+            ลิงก์สำหรับดึงข้อมูลโครงการโครงสร้างพื้นฐานทั้งหมดแบบเรียลไทม์ในรูปแบบ
+            JSON — ไม่ต้องยืนยันตัวตน
+          </p>
+
+          <!-- URL Row -->
+          <div class="flex gap-2 mb-4">
+            <input
+              id="apiUrlInput"
+              type="text"
+              readonly
+              class="flex-1 min-w-0 bg-slate-900 border border-slate-700 text-gray-300 text-xs rounded-xl px-3 py-2.5 font-mono focus:outline-none"
+              value="(กำลังโหลด URL...)"
+            />
+            <button
+              id="copyApiBtn"
+              onclick="copyApiLink()"
+              class="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-semibold rounded-xl transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              คัดลอกลิงก์
+            </button>
+          </div>
+
+          <!-- Optional year filter hint -->
+          <p class="text-[11px] text-gray-500 mb-4">
+            กรองเฉพาะปีงบประมาณ: ต่อท้าย URL ด้วย
+            <code class="bg-slate-900 px-1.5 py-0.5 rounded text-cyan-400">&amp;year=2568</code>
+          </p>
+
+          <!-- Sample JSON response -->
+          <p class="text-xs text-gray-400 font-medium mb-2">ตัวอย่าง Response:</p>
+          <pre
+            class="bg-slate-950 border border-slate-700 p-4 rounded-xl font-mono text-xs text-green-400 overflow-x-auto leading-relaxed"
+          >{
+  "status": "success",
+  "generated": "2026-06-14T15:00:00.000Z",
+  "source": "CR-Vision — องค์การบริหารส่วนจังหวัดเชียงราย",
+  "total": 312,
+  "data": [
+    {
+      "ปีงบประมาณ": "2568",
+      "ชื่อโครงการ": "ก่อสร้างถนน คสล. หมู่ที่ 1 บ้านดู่",
+      "งบประมาณ": "2500000",
+      "ตำบล": "บ้านดู่",
+      "อำเภอ": "เมืองเชียงราย",
+      "สถานที่ดำเนินงาน": "หมู่ที่ 1",
+      "พิกัดเริ่มต้น": "19.9071, 99.8325",
+      "สถานะ": "ดำเนินการเสร็จสิ้น"
+    },
+    { "..." : "..." }
+  ]
+}</pre>
+        </div>
+      </div>
+
       <!-- Security Info -->
       <div class="mb-6">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5">
@@ -560,6 +625,40 @@
         });
 
       lucide.createIcons();
+
+      // ── Open Data API URL ──────────────────────────────────
+      (function () {
+        var base = window.GAS_WEBAPP_URL || "";
+        var url = base ? base + "?api=public" : "(ยังไม่ตั้งค่า GAS_WEBAPP_URL)";
+        var input = document.getElementById("apiUrlInput");
+        if (input) input.value = url;
+      })();
+
+      function copyApiLink() {
+        var input = document.getElementById("apiUrlInput");
+        var btn   = document.getElementById("copyApiBtn");
+        if (!input || !btn) return;
+        var url = input.value;
+        if (!url || url.startsWith("(")) return;
+
+        navigator.clipboard.writeText(url).then(function () {
+          var orig = btn.innerHTML;
+          btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 inline-block mr-1"></i>คัดลอกแล้ว! ✅';
+          btn.classList.remove("bg-cyan-700", "hover:bg-cyan-600");
+          btn.classList.add("bg-emerald-700", "cursor-default");
+          btn.disabled = true;
+          setTimeout(function () {
+            btn.innerHTML = orig;
+            btn.classList.remove("bg-emerald-700", "cursor-default");
+            btn.classList.add("bg-cyan-700", "hover:bg-cyan-600");
+            btn.disabled = false;
+            lucide.createIcons({ nodes: btn.querySelectorAll("[data-lucide]") });
+          }, 2000);
+        }).catch(function () {
+          input.select();
+          document.execCommand("copy");
+        });
+      }
 
       // ── Helpers ────────────────────────────────────────────
       var ROLE_BADGE = {
