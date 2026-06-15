@@ -8,7 +8,8 @@
     SHEET_ID: "179WwkuBkc6QwiuVvJIP-RXpW0zI_gkKnfBLHw87YYyI",
     SHEETS: [
       { name: "2569", gid: null },
-      { name: "2568", gid: "1364287519" }
+      { name: "2568", gid: "1364287519" },
+      { name: "2567", gid: "65181058" }
     ],
     MAP_CENTER: [19.9071, 99.8325],
     MAP_ZOOM: 10,
@@ -160,39 +161,69 @@
   }
 
   // =============================================
-  // DATA FETCHER - Google Sheets
+  // DATA FETCHER
+  // ลำดับการทำงาน:
+  //   1. ลองดึง year list จาก Public API (GAS ?api=public)
+  //      → ได้รู้ว่า sheet ไหนมีบ้าง (รองรับปีใหม่อัตโนมัติ)
+  //   2. โหลดข้อมูลจริงผ่าน GViz + parseSheetRows()
+  //      → ใช้ regex-based column mapping ที่แม่นยำ รวมถึงพิกัด
+  //   3. ถ้า Public API ล้มเหลว → ใช้ CONFIG.SHEETS (hardcoded fallback)
   // =============================================
   async function fetchSheetData() {
-    const allProjects = [];
-    
-    // โหลดข้อมูลจากทุก sheet ใน CONFIG.SHEETS
-    for (const sheetConfig of CONFIG.SHEETS) {
+    const sheetsToLoad = await discoverSheets();
+    return fetchGVizSheets(sheetsToLoad);
+  }
+
+  // ─── ค้นหา sheet ที่มีจาก Public API ────────────────────────
+  async function discoverSheets() {
+    const gasUrl = window.GAS_WEBAPP_URL || "";
+    if (gasUrl && !gasUrl.includes("REPLACE_WITH")) {
       try {
-        console.log(`[CR-Vision] Loading sheet: ${sheetConfig.name}...`);
+        const response = await fetch(gasUrl + "?api=public");
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const json = await response.json();
+        if (json.status === "success" && Array.isArray(json.data) && json.data.length > 0) {
+          const years = [
+            ...new Set(json.data.map((r) => (r["ปีงบประมาณ"] || "").toString().trim()).filter(Boolean)),
+          ].sort().reverse();
+          if (years.length > 0) {
+            console.log("[CR-Vision] Discovered sheets:", years);
+            return years.map((y) => ({ name: y, gid: null }));
+          }
+        }
+      } catch (err) {
+        console.warn("[CR-Vision] discoverSheets failed, using CONFIG.SHEETS:", err.message);
+      }
+    }
+    return CONFIG.SHEETS; // fallback hardcoded
+  }
+
+  // ─── โหลดข้อมูลจริงจาก GViz (parseSheetRows รองรับทุก column format) ──
+  async function fetchGVizSheets(sheetsConfig) {
+    const allProjects = [];
+    for (const sheetConfig of sheetsConfig) {
+      try {
+        console.log(`[CR-Vision] GViz: Loading sheet ${sheetConfig.name}...`);
         const url = getSheetURL(sheetConfig);
         const response = await fetch(url);
         const text = await response.text();
-
         const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
         if (!jsonStr || !jsonStr[1]) {
-          console.warn(`Failed to parse sheet ${sheetConfig.name}`);
+          console.warn(`GViz: Failed to parse sheet ${sheetConfig.name}`);
           continue;
         }
-
         const data = JSON.parse(jsonStr[1]);
         if (data.status === "error") {
-          console.warn(`Sheet ${sheetConfig.name} error:`, data.errors?.[0]?.message);
+          console.warn(`GViz: Sheet ${sheetConfig.name} error:`, data.errors?.[0]?.message);
           continue;
         }
-
         const projects = parseSheetRows(data, sheetConfig.name);
         allProjects.push(...projects);
-        console.log(`[CR-Vision] Loaded ${projects.length} projects from ${sheetConfig.name}`);
+        console.log(`[CR-Vision] GViz: Loaded ${projects.length} from ${sheetConfig.name}`);
       } catch (err) {
-        console.warn(`Failed to load sheet ${sheetConfig.name}:`, err.message);
+        console.warn(`GViz: Failed to load sheet ${sheetConfig.name}:`, err.message);
       }
     }
-    
     return allProjects;
   }
 
@@ -1599,11 +1630,20 @@
     setupEventListeners();
 
     let projects;
+    const _setApiDot = (ok) => {
+      const dot = document.getElementById("apiStatusDot");
+      if (!dot) return;
+      dot.classList.remove("bg-gray-500", "bg-emerald-400", "bg-red-400");
+      dot.classList.add(ok ? "bg-emerald-400" : "bg-red-400");
+      dot.title = ok ? "เชื่อมต่อสำเร็จ" : "เชื่อมต่อไม่ได้ — แสดงข้อมูลตัวอย่าง";
+    };
     try {
       projects = await fetchSheetData();
       if (projects.length === 0) throw new Error("No data returned");
+      _setApiDot(true);
     } catch (err) {
       console.warn("Failed to fetch from Google Sheets, using sample data:", err.message);
+      _setApiDot(false);
       projects = getSampleData();
     }
 

@@ -361,10 +361,17 @@
         >
           <span>&copy; 2026 CRPAO</span>
           <div class="flex items-center gap-2">
-            <span class="flex items-center gap-1"
-              ><i data-lucide="database" class="w-3 h-3"></i> Google Sheets
-              API</span
-            >
+            <span class="flex items-center gap-1">
+              <i data-lucide="database" class="w-3 h-3 text-blue-400"></i>
+              <span id="apiStatusText" class="text-blue-400"
+                >Google Sheets API</span
+              >
+              <span
+                id="apiStatusDot"
+                title="สถานะการเชื่อมต่อ"
+                class="w-2 h-2 rounded-full bg-gray-500 transition-colors duration-500"
+              ></span>
+            </span>
             <a
               href="#"
               onclick="goToLogin(event)"
@@ -389,7 +396,11 @@
           onclick="goToLogin(event)"
           class="xl:hidden fixed top-4 left-4 z-[1002] bg-slate-800 border border-slate-700 text-white px-3 py-2 rounded-xl shadow-lg flex items-center gap-2 hover:bg-slate-700 transition-all active:scale-95 text-xs font-medium"
         >
-          <i data-lucide="log-in" id="mobileAuthIcon" class="w-4 h-4 text-blue-400"></i>
+          <i
+            data-lucide="log-in"
+            id="mobileAuthIcon"
+            class="w-4 h-4 text-blue-400"
+          ></i>
           <span id="mobileAuthLabel">เข้าสู่ระบบ</span>
         </button>
 
@@ -796,12 +807,15 @@
           var iconEl = document.querySelector("#footerAuthLink i");
           if (textEl)
             textEl.textContent =
-              s.user + " (" + (s.displayRole || window.CRAuth.getRoleLabel(s.role)) + ")";
+              s.user +
+              " (" +
+              (s.displayRole || window.CRAuth.getRoleLabel(s.role)) +
+              ")";
           if (iconEl) iconEl.setAttribute("data-lucide", "layout-dashboard");
         }
 
         // Mobile top-left button
-        var mIcon  = document.getElementById("mobileAuthIcon");
+        var mIcon = document.getElementById("mobileAuthIcon");
         var mLabel = document.getElementById("mobileAuthLabel");
         if (s && mIcon && mLabel) {
           mIcon.setAttribute("data-lucide", "layout-dashboard");

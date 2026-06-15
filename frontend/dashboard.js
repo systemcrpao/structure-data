@@ -288,7 +288,43 @@
 
   function buildAnalytics() {
     Chart.defaults.color='#94a3b8';Chart.defaults.borderColor='rgba(71,85,105,0.35)';Chart.defaults.font.family="'Sarabun', sans-serif";Chart.defaults.font.size=11;
-    var raw=getAnalyticsData(),sessions=raw.sessions||[],events=raw.events||[],today=todayISO();
+
+    // ลองดึงจาก GAS ก่อน (server-side aggregated) — fallback localStorage ถ้าล้มเหลว
+    var gasUrl = window.GAS_WEBAPP_URL || '';
+    if (gasUrl && !gasUrl.includes('REPLACE_WITH') && _session && _session.token) {
+      window.CRAuth.callGAS({ action: 'getAnalytics', token: _session.token })
+        .then(function (result) {
+          if (result && result.success && Array.isArray(result.sessions)) {
+            // แปลง eventsJSON (summary object) → array ของ event records
+            var events = [];
+            result.sessions.forEach(function (s) {
+              if (s.eventsJSON && typeof s.eventsJSON === 'object') {
+                Object.keys(s.eventsJSON).forEach(function (name) {
+                  var cnt = s.eventsJSON[name] || 0;
+                  for (var i = 0; i < cnt; i++) events.push({ name: name, sid: s.id });
+                });
+              }
+            });
+            renderAnalytics(result.sessions, events);
+          } else {
+            var raw = getAnalyticsData();
+            renderAnalytics(raw.sessions || [], raw.events || []);
+          }
+        })
+        .catch(function () {
+          var raw = getAnalyticsData();
+          renderAnalytics(raw.sessions || [], raw.events || []);
+        });
+      return; // renderAnalytics จะถูกเรียกจาก .then() / .catch()
+    }
+
+    // fallback: localStorage เท่านั้น (offline / GAS ยังไม่ตั้งค่า)
+    var raw = getAnalyticsData();
+    renderAnalytics(raw.sessions || [], raw.events || []);
+  }
+
+  function renderAnalytics(sessions, events) {
+    var today=todayISO();
 
     $('kpiTotalSessions').textContent=sessions.length.toLocaleString('th-TH');
     $('kpiToday').textContent=sessions.filter(function(s){return s.date===today;}).length.toLocaleString('th-TH');

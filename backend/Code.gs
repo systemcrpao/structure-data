@@ -69,8 +69,9 @@ function doPost(e) {
 
     if (!action) return error_("Missing action");
 
-    // Login ไม่ต้องใช้ token
+    // Actions ที่ไม่ต้องใช้ token
     if (action === "login") return handleLogin(params);
+    if (action === "logVisit") return handleLogVisit(params);
 
     // ทุก action อื่นต้องมี valid token
     var session = verifyToken(params.token);
@@ -97,6 +98,8 @@ function doPost(e) {
         return handleUpdateUser(params, session);
       case "deleteUser":
         return handleDeleteUser(params, session);
+      case "getAnalytics":
+        return handleGetAnalytics(params, session);
       default:
         return error_("Unknown action: " + action);
     }
@@ -130,9 +133,7 @@ function handlePublicApi_(e) {
   try {
     var ss = SpreadsheetApp.openById(DATA_SHEET_ID);
     var year =
-      e.parameter && e.parameter.year
-        ? e.parameter.year.toString().trim()
-        : "";
+      e.parameter && e.parameter.year ? e.parameter.year.toString().trim() : "";
 
     var sheets = year
       ? [ss.getSheetByName(year)].filter(Boolean)
@@ -789,6 +790,118 @@ function logAudit_(username, action, details) {
 
 // แปลง header ของ sheet ให้เป็นรูปแบบมาตรฐาน
 // รองรับ cell ที่มี line break หรือ วงเล็บ เช่น "พิกัด\nเริ่มต้น" → "พิกัดเริ่มต้น"
+// ═══════════════════════════════════════════
+// ANALYTICS
+// ═══════════════════════════════════════════
+
+var ANALYTICS_HEADERS = [
+  "ID",
+  "Date",
+  "Hour",
+  "Device",
+  "Browser",
+  "Screen",
+  "Source",
+  "Duration",
+  "EventCount",
+  "IsReturn",
+  "EventsJSON",
+  "Timestamp",
+];
+
+function getAnalyticsSheet_() {
+  var ss = SpreadsheetApp.openById(DATA_SHEET_ID);
+  var sheet = ss.getSheetByName("_analytics");
+  if (!sheet) {
+    sheet = ss.insertSheet("_analytics");
+    sheet.appendRow(ANALYTICS_HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// บันทึก session การเข้าชมหน้าแผนที่ (ไม่ต้อง auth)
+function handleLogVisit(params) {
+  try {
+    var s = params.session;
+    if (!s || !s.id) return error_("Invalid session");
+
+    var sheet = getAnalyticsSheet_();
+    sheet.appendRow([
+      sanitize(s.id || ""),
+      sanitize(s.date || ""),
+      s.hour !== undefined ? parseInt(s.hour) || 0 : "",
+      sanitize(s.device || ""),
+      sanitize(s.browser || ""),
+      sanitize(s.screen || ""),
+      sanitize(s.ref || "direct"),
+      typeof s.duration === "number" ? Math.max(0, s.duration) : 0,
+      typeof s.eventCount === "number" ? Math.max(0, s.eventCount) : 0,
+      s.isReturn ? "1" : "0",
+      s.eventsJSON ? sanitize(s.eventsJSON.substring(0, 2000)) : "{}",
+      new Date().toISOString(),
+    ]);
+    return ok_({ logged: true });
+  } catch (err) {
+    Logger.log("logVisit error: " + err.message);
+    return error_("logVisit failed: " + err.message);
+  }
+}
+
+// ดึงข้อมูล analytics ทั้งหมด (admin / director เท่านั้น)
+function handleGetAnalytics(params, session) {
+  requireRole_(session, ["admin", "director"]);
+
+  var sheet = getAnalyticsSheet_();
+  if (sheet.getLastRow() < 2) return ok_({ sessions: [] });
+
+  var rows = sheet.getDataRange().getValues();
+  var h = rows[0].map(function (c) {
+    return c.toString().toLowerCase().trim();
+  });
+
+  var idIdx = h.indexOf("id");
+  var dateIdx = h.indexOf("date");
+  var hourIdx = h.indexOf("hour");
+  var devIdx = h.indexOf("device");
+  var brwIdx = h.indexOf("browser");
+  var scrIdx = h.indexOf("screen");
+  var refIdx = h.indexOf("source");
+  var durIdx = h.indexOf("duration");
+  var evtIdx = h.indexOf("eventcount");
+  var retIdx = h.indexOf("isreturn");
+  var ejIdx = h.indexOf("eventsjson");
+  var tsIdx = h.indexOf("timestamp");
+
+  var sessions = rows
+    .slice(1)
+    .filter(function (r) {
+      return r[idIdx];
+    })
+    .map(function (r) {
+      var eventsJSON = {};
+      try {
+        eventsJSON = JSON.parse(r[ejIdx] || "{}");
+      } catch (e) {}
+      return {
+        id: r[idIdx] || "",
+        date: r[dateIdx] || "",
+        hour: r[hourIdx] !== "" ? parseInt(r[hourIdx]) : undefined,
+        device: r[devIdx] || "",
+        browser: r[brwIdx] || "",
+        screen: r[scrIdx] || "",
+        ref: r[refIdx] || "direct",
+        duration: parseInt(r[durIdx]) || 0,
+        eventCount: parseInt(r[evtIdx]) || 0,
+        isReturn: r[retIdx] === "1" || r[retIdx] === true,
+        eventsJSON: eventsJSON,
+        ts: r[tsIdx] ? new Date(r[tsIdx]).getTime() : 0,
+      };
+    });
+
+  return ok_({ sessions: sessions });
+}
+
 function normalizeHeader_(h) {
   var cleaned = (h || "")
     .toString()

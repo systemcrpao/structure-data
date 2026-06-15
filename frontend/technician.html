@@ -656,7 +656,7 @@
                 <th class="px-3 py-2 font-medium">แหล่งงบประมาณ</th>
                 <th class="px-3 py-2 font-medium">ประเภทงาน</th>
                 <th class="px-3 py-2 font-medium min-w-[140px]">รายละเอียด</th>
-                <th class="px-3 py-2 font-medium">สถานะ</th>
+                <th class="px-3 py-2 font-medium">สถานะการดำเนินงาน</th>
                 <th class="px-3 py-2 font-medium">รูปภาพ</th>
                 <th class="px-3 py-2 font-medium text-center w-24">จัดการ</th>
               </tr>
@@ -1566,7 +1566,8 @@
           p["พิกัดเริ่มต้น"] || "";
         document.getElementById("e_coordEnd").value = p["พิกัดสิ้นสุด"] || "";
         document.getElementById("e_type").value = p["ประเภทงาน"] || "";
-        document.getElementById("e_status").value = p["สถานะ"] || "รอดำเนินการ";
+        document.getElementById("e_status").value =
+          p["สถานะการดำเนินงาน"] || "รอดำเนินการ";
         document.getElementById("e_image").value = p["รูปภาพ"] || "";
         document.getElementById("e_description").value = p["รายละเอียด"] || "";
         document.getElementById("editModal").classList.remove("hidden");

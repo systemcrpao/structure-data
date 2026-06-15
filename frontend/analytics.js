@@ -72,13 +72,48 @@
   _data.sessions.push(session);
   save(_data);
 
-  // บันทึก duration เมื่อออกจากหน้า
+  // บันทึก duration + ส่งไป GAS เมื่อออกจากหน้า
   window.addEventListener('pagehide', function () {
     const d = load();
     const s = d.sessions.find(function (x) { return x.id === sessionId; });
-    if (s) {
-      s.duration = Math.round((Date.now() - session.ts) / 1000);
-      save(d);
+    if (!s) return;
+
+    s.duration = Math.round((Date.now() - session.ts) / 1000);
+    save(d);
+
+    // รวม event counts ของ session นี้เป็น JSON สรุป
+    const myEvents = d.events.filter(function (e) { return e.sid === sessionId; });
+    const evCounts = {};
+    myEvents.forEach(function (e) {
+      evCounts[e.name] = (evCounts[e.name] || 0) + 1;
+    });
+
+    // ส่งไป GAS (fire-and-forget)
+    const gasUrl = window.GAS_WEBAPP_URL;
+    if (gasUrl && !gasUrl.includes('REPLACE_WITH')) {
+      const payload = JSON.stringify({
+        action: 'logVisit',
+        session: {
+          id:         s.id,
+          date:       s.date,
+          hour:       s.hour,
+          device:     s.device,
+          browser:    s.browser,
+          screen:     s.screen,
+          ref:        s.ref,
+          duration:   s.duration,
+          eventCount: s.eventCount,
+          isReturn:   s.isReturn,
+          eventsJSON: JSON.stringify(evCounts),
+        },
+      });
+      try {
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(gasUrl, payload);
+        } else {
+          fetch(gasUrl, { method: 'POST', body: payload }).catch(function () {});
+        }
+      } catch (e) { /* silent fail */ }
     }
   });
 
